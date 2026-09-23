@@ -200,22 +200,90 @@ def strategy_state(price, frames, lvls):
         ]
     }
 
+def load_previous_snapshot():
+    path=OUT/"latest.json"
+    if not path.exists():
+        return None
+    try:
+        previous=json.loads(path.read_text(encoding="utf-8"))
+        return previous if isinstance(previous,dict) else None
+    except Exception:
+        return None
+
+def detect_material_change(previous,current):
+    if not previous or "strategy" not in previous:
+        return {
+            "material":True,
+            "reasons":["baseline_initialized"],
+            "previous_generated_at":previous.get("generated_at_sgt") if isinstance(previous,dict) else None
+        }
+
+    reasons=[]
+    prev_s=previous["strategy"]; cur_s=current["strategy"]
+    prev_price=float(previous.get("ticker",{}).get("last",current["ticker"]["last"]))
+    cur_price=float(current["ticker"]["last"])
+    level_tol=max(cur_price*0.004, float(current["frames"]["15m"]["atr10"])*0.75)
+
+    if prev_s.get("state")!=cur_s.get("state"):
+        reasons.append(f"state:{prev_s.get('state')}->{cur_s.get('state')}")
+    if prev_s.get("bias")!=cur_s.get("bias"):
+        reasons.append(f"bias:{prev_s.get('bias')}->{cur_s.get('bias')}")
+
+    for tf in ("1H","4H"):
+        prev_trend=previous.get("frames",{}).get(tf,{}).get("trend")
+        cur_trend=current.get("frames",{}).get(tf,{}).get("trend")
+        if prev_trend and cur_trend and prev_trend!=cur_trend:
+            reasons.append(f"{tf}_trend:{prev_trend}->{cur_trend}")
+
+    prev_4h_st=previous.get("frames",{}).get("4H",{}).get("supertrend_direction")
+    cur_4h_st=current.get("frames",{}).get("4H",{}).get("supertrend_direction")
+    if prev_4h_st and cur_4h_st and prev_4h_st!=cur_4h_st:
+        reasons.append(f"4H_supertrend:{prev_4h_st}->{cur_4h_st}")
+
+    for key,label in (("support_primary","support"),("resistance_primary","resistance"),("invalidation_level","invalidation")):
+        old=prev_s.get(key); new=cur_s.get(key)
+        if isinstance(old,(int,float)) and isinstance(new,(int,float)) and abs(new-old)>=level_tol:
+            reasons.append(f"{label}_shift:{old}->{new}")
+
+    prev_res=prev_s.get("resistance_primary")
+    prev_sup=prev_s.get("support_primary")
+    if isinstance(prev_res,(int,float)) and prev_price<=prev_res<cur_price:
+        reasons.append(f"price_crossed_resistance_up:{prev_res}")
+    if isinstance(prev_sup,(int,float)) and prev_price>=prev_sup>cur_price:
+        reasons.append(f"price_crossed_support_down:{prev_sup}")
+
+    prev_score=prev_s.get("score"); cur_score=cur_s.get("score")
+    if isinstance(prev_score,(int,float)) and isinstance(cur_score,(int,float)) and abs(cur_score-prev_score)>=3:
+        reasons.append(f"score_change:{prev_score}->{cur_score}")
+
+    return {
+        "material":bool(reasons),
+        "reasons":reasons,
+        "level_tolerance":round(level_tol,6),
+        "previous_generated_at":previous.get("generated_at_sgt"),
+        "previous_price":prev_price,
+        "current_price":cur_price
+    }
+
 def main():
+    previous=load_previous_snapshot()
     t=ticker(); frames={}
     for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
     lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":2,"instrument":INST_ID,
+        "schema_version":3,"instrument":INST_ID,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
         "strategy":strategy_state(float(t["last"]),frames,lvls),
         "notes":["confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
+    snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
     rows="".join(f"<tr><td>{tf}</td><td>{m['close']:.4f}</td><td>{m['trend']}</td><td>{m['structure']['label']}</td><td>{m['rsi6']:.1f}</td><td>{m['supertrend_10_3']:.4f}</td></tr>" for tf,m in frames.items())
     html=f"""<!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
-    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>{t['last']}</b> · Regime: <b>{snap['summary']['regime']}</b></p>
+    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>{t['last']}</b> · Regime: <b>{snap['summary']['regime']}</b> · Strategy: <b>{snap['strategy']['state']}</b></p>
+    <p>Material change: <b>{snap['change']['material']}</b> · Reasons: {', '.join(snap['change']['reasons']) or 'none'}</p>
     <p>Updated: {snap['generated_at_sgt']} (UTC+8)</p>
     <table border="1" cellpadding="6" cellspacing="0"><tr><th>周期</th><th>收盘</th><th>趋势</th><th>结构</th><th>RSI6</th><th>SuperTrend</th></tr>{rows}</table>
     <h2>支撑</h2><pre>{json.dumps(snap['levels']['supports'],ensure_ascii=False,indent=2)}</pre>
