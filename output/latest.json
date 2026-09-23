@@ -1,4 +1,217 @@
 {
-  "status": "awaiting_first_workflow_run",
-  "instrument": "OPENAI-USDT-SWAP"
+  "schema_version": 1,
+  "instrument": "OPENAI-USDT-SWAP",
+  "generated_at_utc": "2026-09-23T16:30:12.302573+00:00",
+  "generated_at_sgt": "2026-09-24T00:30:12.303163+08:00",
+  "ticker": {
+    "last": 163.96,
+    "lastSz": 0.25,
+    "askPx": 164.06,
+    "askSz": 0.55,
+    "bidPx": 163.96,
+    "bidSz": 0.25,
+    "open24h": 168.81,
+    "high24h": 169.64,
+    "low24h": 162.46,
+    "vol24h": 5428.63,
+    "volCcy24h": 5428.63,
+    "ts": 1790181010077
+  },
+  "summary": {
+    "regime": "mixed",
+    "timeframe_trends": {
+      "15m": "neutral",
+      "1H": "bearish",
+      "4H": "neutral"
+    }
+  },
+  "frames": {
+    "15m": {
+      "asof_ts": 1790180100000,
+      "close": 163.96,
+      "ma5": 164.016,
+      "ma10": 163.888,
+      "ma20": 165.604,
+      "boll_mid": 165.604,
+      "boll_upper": 169.185734,
+      "boll_lower": 162.022266,
+      "rsi6": 37.461,
+      "rsi12": 32.083,
+      "rsi24": 32.84,
+      "macd_diff": -1.152452,
+      "macd_dea": -1.070858,
+      "macd_hist_okx": -0.163187,
+      "atr10": 0.769717,
+      "supertrend_10_3": 165.581032,
+      "supertrend_direction": "down",
+      "volume_quote": 913.953,
+      "volume_20_avg": 19548.702,
+      "volume_ratio_vs_20": 0.047,
+      "recent_high": 169.64,
+      "recent_low": 162.46,
+      "structure": {
+        "label": "LH_LL",
+        "last_highs": [
+          168.66,
+          168.29,
+          164.91
+        ],
+        "last_lows": [
+          168.12,
+          167.59,
+          162.46
+        ]
+      },
+      "trend": "neutral"
+    },
+    "1H": {
+      "asof_ts": 1790175600000,
+      "close": 163.72,
+      "ma5": 165.738,
+      "ma10": 167.15,
+      "ma20": 167.8255,
+      "boll_mid": 167.8255,
+      "boll_upper": 170.916878,
+      "boll_lower": 164.734122,
+      "rsi6": 13.972,
+      "rsi12": 23.901,
+      "rsi24": 40.333,
+      "macd_diff": -0.414566,
+      "macd_dea": 0.300024,
+      "macd_hist_okx": -1.429181,
+      "atr10": 1.353144,
+      "supertrend_10_3": 168.189433,
+      "supertrend_direction": "down",
+      "volume_quote": 58350.524,
+      "volume_20_avg": 37636.324,
+      "volume_ratio_vs_20": 1.55,
+      "recent_high": 170.87,
+      "recent_low": 156.19,
+      "structure": {
+        "label": "contracting",
+        "last_highs": [
+          170.87,
+          169.54,
+          169.4
+        ],
+        "last_lows": [
+          167.64,
+          167.51,
+          167.81
+        ]
+      },
+      "trend": "bearish"
+    },
+    "4H": {
+      "asof_ts": 1790164800000,
+      "close": 163.72,
+      "ma5": 167.46,
+      "ma10": 167.247,
+      "ma20": 163.785,
+      "boll_mid": 163.785,
+      "boll_upper": 172.834286,
+      "boll_lower": 154.735714,
+      "rsi6": 33.158,
+      "rsi12": 51.324,
+      "rsi24": 57.919,
+      "macd_diff": 3.268526,
+      "macd_dea": 3.541905,
+      "macd_hist_okx": -0.546759,
+      "atr10": 2.833245,
+      "supertrend_10_3": 160.959093,
+      "supertrend_direction": "up",
+      "volume_quote": 367514.162,
+      "volume_20_avg": 171048.261,
+      "volume_ratio_vs_20": 2.149,
+      "recent_high": 170.87,
+      "recent_low": 148.16,
+      "structure": {
+        "label": "HH_HL",
+        "last_highs": [
+          159.2,
+          169.1,
+          170.87
+        ],
+        "last_lows": [
+          156.19,
+          156.68,
+          163.16
+        ]
+      },
+      "trend": "neutral"
+    }
+  },
+  "levels": {
+    "supports": [
+      {
+        "level": 163.8365,
+        "sources": [
+          "4H MA20",
+          "15m MA10"
+        ],
+        "strength": 2
+      },
+      {
+        "level": 162.2411,
+        "sources": [
+          "15m BOLL lower",
+          "15m recent low"
+        ],
+        "strength": 2
+      },
+      {
+        "level": 160.9591,
+        "sources": [
+          "4H SuperTrend"
+        ],
+        "strength": 1
+      },
+      {
+        "level": 156.19,
+        "sources": [
+          "1H recent low"
+        ],
+        "strength": 1
+      }
+    ],
+    "resistances": [
+      {
+        "level": 164.7341,
+        "sources": [
+          "1H BOLL lower"
+        ],
+        "strength": 1
+      },
+      {
+        "level": 165.5925,
+        "sources": [
+          "15m SuperTrend",
+          "15m MA20"
+        ],
+        "strength": 2
+      },
+      {
+        "level": 167.1985,
+        "sources": [
+          "1H MA10",
+          "4H MA10"
+        ],
+        "strength": 2
+      },
+      {
+        "level": 168.0075,
+        "sources": [
+          "1H MA20",
+          "1H SuperTrend"
+        ],
+        "strength": 2
+      }
+    ]
+  },
+  "notes": [
+    "confirmed candles only",
+    "SuperTrend 10,3",
+    "BOLL 20,2",
+    "MACD histogram = 2*(DIFF-DEA)"
+  ]
 }
