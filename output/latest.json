@@ -1,21 +1,21 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-23T16:34:20.190046+00:00",
-  "generated_at_sgt": "2026-09-24T00:34:20.190483+08:00",
+  "generated_at_utc": "2026-09-23T16:37:44.476108+00:00",
+  "generated_at_sgt": "2026-09-24T00:37:44.476654+08:00",
   "ticker": {
-    "last": 164.05,
-    "lastSz": 0.08,
-    "askPx": 164.06,
-    "askSz": 1.94,
-    "bidPx": 163.94,
-    "bidSz": 0.01,
-    "open24h": 168.69,
+    "last": 163.88,
+    "lastSz": 0.02,
+    "askPx": 163.88,
+    "askSz": 0.04,
+    "bidPx": 163.71,
+    "bidSz": 1.86,
+    "open24h": 168.63,
     "high24h": 169.64,
     "low24h": 162.46,
-    "vol24h": 5434.05,
-    "volCcy24h": 5434.05,
-    "ts": 1790181258574
+    "vol24h": 5439.35,
+    "volCcy24h": 5439.35,
+    "ts": 1790181463078
   },
   "summary": {
     "regime": "mixed",
@@ -243,5 +243,13 @@
     "SuperTrend 10,3",
     "BOLL 20,2",
     "MACD histogram = 2*(DIFF-DEA)"
-  ]
+  ],
+  "change": {
+    "material": false,
+    "reasons": [],
+    "level_tolerance": 0.65552,
+    "previous_generated_at": "2026-09-24T00:34:20.190483+08:00",
+    "previous_price": 164.05,
+    "current_price": 163.88
+  }
 }
