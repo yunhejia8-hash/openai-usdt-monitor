@@ -142,14 +142,74 @@ def summary(frames):
     else: regime="mixed"
     return {"regime":regime,"timeframe_trends":trends}
 
+def strategy_state(price, frames, lvls):
+    f15=frames["15m"]; f1=frames["1H"]; f4=frames["4H"]
+    supports=lvls["supports"]; resistances=lvls["resistances"]
+    s1=supports[0]["level"] if supports else None
+    s2=supports[1]["level"] if len(supports)>1 else None
+    r1=resistances[0]["level"] if resistances else None
+    r2=resistances[1]["level"] if len(resistances)>1 else None
+
+    score=0
+    score += 2 if f4["supertrend_direction"]=="up" else -2
+    score += 2 if f1["trend"]=="bullish" else (-2 if f1["trend"]=="bearish" else 0)
+    score += 1 if f15["trend"]=="bullish" else (-1 if f15["trend"]=="bearish" else 0)
+    score += 1 if f15["structure"]["label"]=="HH_HL" else (-1 if f15["structure"]["label"]=="LH_LL" else 0)
+    score += 1 if f1["macd_hist_okx"]>0 else -1
+
+    bias="bullish" if score>=4 else ("bearish" if score<=-4 else "mixed")
+    if bias=="bullish" and r1 is not None and price>r1:
+        state="可加仓"
+    elif bias=="bullish":
+        state="可试仓"
+    elif bias=="bearish" and s1 is not None and price<s1:
+        state="减仓"
+    else:
+        state="观望"
+
+    invalidation=s2 if bias=="bullish" and s2 is not None else (s1 if s1 is not None else f4["supertrend_10_3"])
+
+    return {
+        "state":state,
+        "bias":bias,
+        "score":score,
+        "support_primary":s1,
+        "support_secondary":s2,
+        "resistance_primary":r1,
+        "resistance_secondary":r2,
+        "invalidation_level":invalidation,
+        "triggers":{
+            "buy_or_add":{
+                "enabled":bias!="bearish",
+                "condition":"15m收盘重新站上第一阻力且15m SuperTrend翻多；1H同步转强则确认度更高",
+                "trigger_above":r1,
+                "confirmation_above":r2
+            },
+            "reduce_risk":{
+                "condition":"15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
+                "trigger_below":s1,
+                "hard_invalidation_below":invalidation
+            }
+        },
+        "reason_codes":[
+            "4H_ST_"+f4["supertrend_direction"],
+            "1H_"+f1["trend"],
+            "15m_"+f15["trend"],
+            "15m_structure_"+f15["structure"]["label"],
+            "1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG"
+        ]
+    }
+
 def main():
     t=ticker(); frames={}
     for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
+    lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":1,"instrument":INST_ID,
+        "schema_version":2,"instrument":INST_ID,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
-        "ticker":t,"summary":summary(frames),"frames":frames,"levels":levels(float(t["last"]),frames),
+        "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
+        "strategy":strategy_state(float(t["last"]),frames,lvls),
         "notes":["confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
