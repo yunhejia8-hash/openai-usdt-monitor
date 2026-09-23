@@ -1,8 +1,8 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-23T16:33:39.771491+00:00",
-  "generated_at_sgt": "2026-09-24T00:33:39.771936+08:00",
+  "generated_at_utc": "2026-09-23T16:34:20.190046+00:00",
+  "generated_at_sgt": "2026-09-24T00:34:20.190483+08:00",
   "ticker": {
     "last": 164.05,
     "lastSz": 0.08,
@@ -10,12 +10,12 @@
     "askSz": 1.94,
     "bidPx": 163.94,
     "bidSz": 0.01,
-    "open24h": 168.65,
+    "open24h": 168.69,
     "high24h": 169.64,
     "low24h": 162.46,
-    "vol24h": 5434.68,
-    "volCcy24h": 5434.68,
-    "ts": 1790181218077
+    "vol24h": 5434.05,
+    "volCcy24h": 5434.05,
+    "ts": 1790181258574
   },
   "summary": {
     "regime": "mixed",
@@ -206,6 +206,36 @@
         ],
         "strength": 2
       }
+    ]
+  },
+  "strategy": {
+    "state": "观望",
+    "bias": "mixed",
+    "score": -2,
+    "support_primary": 163.8365,
+    "support_secondary": 162.2411,
+    "resistance_primary": 164.7341,
+    "resistance_secondary": 165.5925,
+    "invalidation_level": 163.8365,
+    "triggers": {
+      "buy_or_add": {
+        "enabled": true,
+        "condition": "15m收盘重新站上第一阻力且15m SuperTrend翻多；1H同步转强则确认度更高",
+        "trigger_above": 164.7341,
+        "confirmation_above": 165.5925
+      },
+      "reduce_risk": {
+        "condition": "15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
+        "trigger_below": 163.8365,
+        "hard_invalidation_below": 163.8365
+      }
+    },
+    "reason_codes": [
+      "4H_ST_up",
+      "1H_bearish",
+      "15m_neutral",
+      "15m_structure_LH_LL",
+      "1H_MACD_NEG"
     ]
   },
   "notes": [
