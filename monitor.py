@@ -112,7 +112,7 @@ def metrics(c,recent):
         "boll_mid":round(ma20,6),"boll_upper":round(bu,6),"boll_lower":round(bl,6),
         "rsi6":round(rsi(closes,6),3),"rsi12":round(rsi(closes,12),3),"rsi24":round(rsi(closes,24),3),
         "macd_diff":round(diff[-1],6),"macd_dea":round(dea[-1],6),"macd_hist_okx":round(2*(diff[-1]-dea[-1]),6),
-        "atr10":round(float(atr10),6),"supertrend_10_3":round(st,6),"supertrend_direction":sdirection,
+        "atr10":round(float(atr10),6),"ma20_extension_atr":round((last["close"]-ma20)/atr10,3),"supertrend_10_3":round(st,6),"supertrend_direction":sdirection,
         "volume_quote":round(last["volQuote"],3),"volume_20_avg":round(vh,3),"volume_ratio_vs_20":round(vr,3),
         "recent_high":round(max(x["high"] for x in look),6),"recent_low":round(min(x["low"] for x in look),6),
         "structure":structure(c),"trend":"bullish" if bullish else "bearish" if bearish else "neutral"
@@ -142,6 +142,93 @@ def summary(frames):
     else: regime="mixed"
     return {"regime":regime,"timeframe_trends":trends}
 
+def clamp(v, lo=0.0, hi=100.0):
+    return max(lo,min(hi,float(v)))
+
+def low_risk_entry(price,frames,lvls):
+    f15,f1,f4=frames["15m"],frames["1H"],frames["4H"]
+    supports=lvls["supports"]; resistances=lvls["resistances"]
+    s=supports[0] if supports else None; r=resistances[0] if resistances else None
+    s_level=s["level"] if s else None; r_level=r["level"] if r else None
+    atr=max(float(f15["atr10"]),1e-9)
+
+    # Location: 100 near support, 0 near resistance. Hard gate prevents late chasing.
+    if s_level is not None and r_level is not None and r_level>s_level:
+        pos=(price-s_level)/(r_level-s_level)
+        location=clamp(100*(1-pos))
+    elif s_level is not None:
+        location=clamp(100-50*max(0,(price-s_level)/atr))
+    else:
+        location=50.0
+
+    # Direction score: every component is normalized so higher = more bullish.
+    trend=50
+    trend += 15 if f4["supertrend_direction"]=="up" else -15
+    trend += 15 if f1["trend"]=="bullish" else (-15 if f1["trend"]=="bearish" else 0)
+    trend += 10 if f15["trend"]=="bullish" else (-10 if f15["trend"]=="bearish" else 0)
+    momentum=50
+    momentum += 15 if f1["macd_hist_okx"]>0 else -15
+    momentum += 10 if f15["macd_hist_okx"]>0 else -10
+    momentum += 10 if 50<=f15["rsi6"]<=70 else (-10 if f15["rsi6"]<40 else -5 if f15["rsi6"]>75 else 0)
+    struct=50
+    struct += 20 if f15["structure"]["label"]=="HH_HL" else (-20 if f15["structure"]["label"]=="LH_LL" else 0)
+    struct += 15 if f1["structure"]["label"]=="HH_HL" else (-15 if f1["structure"]["label"]=="LH_LL" else 0)
+    volume=clamp(50+(float(f15["volume_ratio_vs_20"])-1)*35)
+
+    # Support quality is deterministic and deliberately conservative.
+    support_quality=0 if not s else clamp(30+8*len(s["sources"])+(15 if any(x.startswith("4H ") for x in s["sources"]) else 0)+(10 if any("recent low" in x for x in s["sources"]) else 0))
+    resistance_validity=0 if not r else clamp(30+8*len(r["sources"])+(15 if any(x.startswith("4H ") for x in r["sources"]) else 0)+(10 if any("recent high" in x for x in r["sources"]) else 0))
+    resistance_bull=100-resistance_validity
+    buy_score=clamp(.25*support_quality+.20*resistance_bull+.20*clamp(trend)+.15*clamp(momentum)+.10*volume+.10*clamp(struct))
+
+    # Pullback confirmation is rule based: touch/near support, no decisive break,
+    # reclaim above support, HL structure, plus ST or volume confirmation.
+    near_support=s_level is not None and abs(price-s_level)<=0.35*atr
+    decisive_break=s_level is not None and price < s_level-0.20*atr
+    reclaimed=s_level is not None and price>=s_level
+    hl=f15["structure"]["label"]=="HH_HL"
+    confirm_st=f15["supertrend_direction"]=="up"
+    confirm_vol=float(f15["volume_ratio_vs_20"])>=1.20
+    pullback_confirmed=near_support and not decisive_break and reclaimed and hl and (confirm_st or confirm_vol)
+
+    # Anti-chase penalty: extended price cannot be rescued by bullish indicators.
+    ext=float(f15.get("ma20_extension_atr",0))
+    chase_penalty=25 if ext>2 else 0
+    hard_no_chase=ext>3 or location<60
+    entry_score=clamp(.45*location+.20*support_quality+.15*clamp(trend)+.10*clamp(momentum)+.10*volume-chase_penalty)
+
+    # Breakout-retest: do not buy the initial breakout. A former resistance must
+    # first be below price and close enough to act as support on a later snapshot.
+    retest_candidate=False
+    if r_level is not None and price>r_level:
+        retest_candidate=(price-r_level)<=0.35*atr and f15["supertrend_direction"]=="up" and hl and (confirm_vol or f15["macd_hist_okx"]>0)
+
+    if pullback_confirmed and buy_score>=70 and entry_score>=75 and not hard_no_chase:
+        entry_state="CONFIRMED"
+        entry_mode="PULLBACK"
+    elif retest_candidate and buy_score>=70 and entry_score>=70 and ext<=2:
+        entry_state="CONFIRMED"
+        entry_mode="BREAKOUT_RETEST"
+    elif near_support and not decisive_break:
+        entry_state="SETUP"
+        entry_mode="PULLBACK"
+    else:
+        entry_state="WAIT"
+        entry_mode=None
+
+    return {
+        "buy_score":round(buy_score,1),"entry_score":round(entry_score,1),"location_score":round(location,1),
+        "support_quality":round(support_quality,1),"resistance_validity":round(resistance_validity,1),
+        "entry_state":entry_state,"entry_mode":entry_mode,"hard_no_chase":hard_no_chase,
+        "ma20_extension_atr":round(ext,3),"chase_penalty":chase_penalty,
+        "rules":{"near_support":near_support,"decisive_break":decisive_break,"reclaimed_support":reclaimed,
+                 "15m_HL":hl,"15m_supertrend_up":confirm_st,"volume_ratio_ge_1_2":confirm_vol,
+                 "breakout_retest_candidate":retest_candidate},
+        "thresholds":{"buy_score_min":70,"entry_score_pullback_min":75,"location_min":60,
+                      "near_support_atr":0.35,"break_buffer_atr":0.20,"volume_ratio_confirm":1.20,
+                      "chase_penalty_above_ma20_atr":2.0,"hard_no_chase_above_ma20_atr":3.0}
+    }
+
 def strategy_state(price, frames, lvls):
     f15=frames["15m"]; f1=frames["1H"]; f4=frames["4H"]
     supports=lvls["supports"]; resistances=lvls["resistances"]
@@ -149,6 +236,7 @@ def strategy_state(price, frames, lvls):
     s2=supports[1]["level"] if len(supports)>1 else None
     r1=resistances[0]["level"] if resistances else None
     r2=resistances[1]["level"] if len(resistances)>1 else None
+    entry=low_risk_entry(price,frames,lvls)
 
     score=0
     score += 2 if f4["supertrend_direction"]=="up" else -2
@@ -156,48 +244,27 @@ def strategy_state(price, frames, lvls):
     score += 1 if f15["trend"]=="bullish" else (-1 if f15["trend"]=="bearish" else 0)
     score += 1 if f15["structure"]["label"]=="HH_HL" else (-1 if f15["structure"]["label"]=="LH_LL" else 0)
     score += 1 if f1["macd_hist_okx"]>0 else -1
-
     bias="bullish" if score>=4 else ("bearish" if score<=-4 else "mixed")
-    if bias=="bullish" and r1 is not None and price>r1:
-        state="可加仓"
-    elif bias=="bullish":
-        state="可试仓"
-    elif bias=="bearish" and s1 is not None and price<s1:
-        state="减仓"
-    else:
-        state="观望"
+
+    if entry["entry_state"]=="CONFIRMED": state="低风险买入/加仓候选"
+    elif entry["entry_state"]=="SETUP": state="等待低风险确认"
+    elif bias=="bearish" and s1 is not None and price<s1: state="减仓"
+    else: state="观望"
 
     invalidation=s2 if bias=="bullish" and s2 is not None else (s1 if s1 is not None else f4["supertrend_10_3"])
-
     return {
-        "state":state,
-        "bias":bias,
-        "score":score,
-        "support_primary":s1,
-        "support_secondary":s2,
-        "resistance_primary":r1,
-        "resistance_secondary":r2,
-        "invalidation_level":invalidation,
+        "state":state,"bias":bias,"score":score,
+        "support_primary":s1,"support_secondary":s2,"resistance_primary":r1,"resistance_secondary":r2,
+        "invalidation_level":invalidation,"low_risk_entry":entry,
         "triggers":{
-            "buy_or_add":{
-                "enabled":bias!="bearish",
-                "condition":"15m收盘重新站上第一阻力且15m SuperTrend翻多；1H同步转强则确认度更高",
-                "trigger_above":r1,
-                "confirmation_above":r2
-            },
-            "reduce_risk":{
-                "condition":"15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
-                "trigger_below":s1,
-                "hard_invalidation_below":invalidation
-            }
-        },
-        "reason_codes":[
-            "4H_ST_"+f4["supertrend_direction"],
-            "1H_"+f1["trend"],
-            "15m_"+f15["trend"],
-            "15m_structure_"+f15["structure"]["label"],
-            "1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG"
-        ]
+            "buy_or_add":{"enabled":entry["entry_state"]=="CONFIRMED",
+                "condition":"仅允许两类低风险入场：回踩强支撑确认，或突破后回踩原阻力确认；禁止初次突破追涨",
+                "trigger_above":r1,"confirmation_above":r2},
+            "reduce_risk":{"condition":"15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
+                "trigger_below":s1,"hard_invalidation_below":invalidation}},
+        "reason_codes":["4H_ST_"+f4["supertrend_direction"],"1H_"+f1["trend"],"15m_"+f15["trend"],
+            "15m_structure_"+f15["structure"]["label"],"1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG",
+            "ENTRY_"+entry["entry_state"]]
     }
 
 def load_previous_snapshot():
@@ -271,12 +338,12 @@ def main():
     for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
     lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":3,"instrument":INST_ID,
+        "schema_version":4,"instrument":INST_ID,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
         "strategy":strategy_state(float(t["last"]),frames,lvls),
-        "notes":["confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
+        "notes":["low-risk entry v1: pullback + breakout-retest, anti-chase hard gate","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
