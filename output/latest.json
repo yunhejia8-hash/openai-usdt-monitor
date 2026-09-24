@@ -1,21 +1,21 @@
 {
   "schema_version": 6,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-24T06:37:15.723699+00:00",
-  "generated_at_sgt": "2026-09-24T14:37:15.723860+08:00",
+  "generated_at_utc": "2026-09-24T06:42:32.190702+00:00",
+  "generated_at_sgt": "2026-09-24T14:42:32.190857+08:00",
   "ticker": {
-    "last": 164.97,
-    "lastSz": 0.46,
-    "askPx": 164.93,
-    "askSz": 1.23,
-    "bidPx": 164.81,
-    "bidSz": 0.48,
-    "open24h": 169.4,
-    "high24h": 169.4,
+    "last": 164.79,
+    "lastSz": 0.02,
+    "askPx": 164.86,
+    "askSz": 0.59,
+    "bidPx": 164.79,
+    "bidSz": 0.01,
+    "open24h": 169.23,
+    "high24h": 169.37,
     "low24h": 162.46,
-    "vol24h": 4088.2,
-    "volCcy24h": 4088.2,
-    "ts": 1790231834668
+    "vol24h": 4088.28,
+    "volCcy24h": 4088.28,
+    "ts": 1790232151076
   },
   "summary": {
     "regime": "mixed",
@@ -223,7 +223,7 @@
     ]
   },
   "strategy": {
-    "state": "观望",
+    "state": "试仓候选",
     "bias": "bullish",
     "score": 5,
     "support_primary": 164.6022,
@@ -241,13 +241,13 @@
     ],
     "low_risk_entry": {
       "buy_score": 67.6,
-      "entry_score": 55.9,
-      "location_score": 41.8,
+      "entry_score": 68.7,
+      "location_score": 70.3,
       "support_quality": 85.0,
       "resistance_validity": 46.0,
-      "entry_state": "WAIT",
-      "entry_mode": null,
-      "entry_label": "WAIT",
+      "entry_state": "PROBE",
+      "entry_mode": "PULLBACK",
+      "entry_label": "LIMIT/PROBE",
       "support_anchor": 164.6022,
       "support_anchor_sources": [
         "15m SuperTrend",
@@ -256,8 +256,8 @@
         "4H MA20",
         "15m MA10"
       ],
-      "support_distance_atr": 1.163858,
-      "support_distance_score": 41.8,
+      "support_distance_atr": 0.59427,
+      "support_distance_score": 70.3,
       "limit_order_zone": [
         164.538996,
         164.791811
@@ -269,7 +269,7 @@
       "limit_order_allowed": true,
       "limit_order_note": "仅预挂小仓；成交时可能尚未确认支撑，不能视为正式买入确认",
       "invalidation_level": 163.7207,
-      "risk_reward_ratio": 0.7663,
+      "risk_reward_ratio": 1.0636,
       "risk_reward_target": 165.9273,
       "has_position": false,
       "breakout_level": null,
@@ -279,11 +279,11 @@
       "chase_penalty": 0,
       "probe_signal_count": 2,
       "rules": {
-        "near_support": false,
+        "near_support": true,
         "valid_atr": true,
         "pullback_touch": false,
         "risk_reward_ok": false,
-        "near_support_probe": false,
+        "near_support_probe": true,
         "decisive_break": false,
         "reclaimed_support": true,
         "15m_HL": true,
@@ -292,7 +292,7 @@
         "15m_rsi_probe_ok": true,
         "volume_ratio_ge_probe": false,
         "volume_ratio_ge_confirm": false,
-        "probe_candidate": false,
+        "probe_candidate": true,
         "pullback_confirmed": false,
         "breakout_retest_candidate": false,
         "add_candidate": false
@@ -323,7 +323,7 @@
     },
     "triggers": {
       "probe": {
-        "enabled": false,
+        "enabled": true,
         "condition": "仅预挂小仓；成交时可能尚未确认支撑，不能视为正式买入确认",
         "limit_order_allowed": true,
         "position_size_class": "small"
@@ -355,7 +355,7 @@
       "15m_bullish",
       "15m_structure_HH_HL",
       "1H_MACD_POS",
-      "ENTRY_WAIT"
+      "ENTRY_PROBE"
     ]
   },
   "notes": [
@@ -368,18 +368,14 @@
   "change": {
     "material": true,
     "reasons": [
-      "buy_score_crossed_72:80.3->67.6",
-      "entry_score_crossed_58:79.0->55.9",
-      "entry_score_crossed_68:79.0->55.9",
-      "entry_score_crossed_70:79.0->55.9",
-      "entry_score_crossed_75:79.0->55.9",
-      "limit_order_zone_changed:None->[164.538996, 164.791811]",
-      "confirmed_entry_zone_changed:None->[164.6022, 164.791811]",
-      "limit_order_allowed:None->True"
+      "state:观望->试仓候选",
+      "entry_state:WAIT->PROBE",
+      "entry_score_crossed_58:55.9->68.7",
+      "entry_score_crossed_68:55.9->68.7"
     ],
-    "level_tolerance": 0.65988,
-    "previous_generated_at": "2026-09-24T14:17:07.268923+08:00",
-    "previous_price": 164.95,
-    "current_price": 164.97
+    "level_tolerance": 0.65916,
+    "previous_generated_at": "2026-09-24T14:37:15.723860+08:00",
+    "previous_price": 164.97,
+    "current_price": 164.79
   }
 }

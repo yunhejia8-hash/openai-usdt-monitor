@@ -1,16 +1,16 @@
 <!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
-    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>164.97</b> · Regime: <b>mixed</b> · Strategy: <b>观望</b></p>
-    <p>Material change: <b>True</b> · Reasons: buy_score_crossed_72:80.3->67.6, entry_score_crossed_58:79.0->55.9, entry_score_crossed_68:79.0->55.9, entry_score_crossed_70:79.0->55.9, entry_score_crossed_75:79.0->55.9, limit_order_zone_changed:None->[164.538996, 164.791811], confirmed_entry_zone_changed:None->[164.6022, 164.791811], limit_order_allowed:None->True</p>
-    <p>Updated: 2026-09-24T14:37:15.723860+08:00 (UTC+8)</p>
+    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>164.79</b> · Regime: <b>mixed</b> · Strategy: <b>试仓候选</b></p>
+    <p>Material change: <b>True</b> · Reasons: state:观望->试仓候选, entry_state:WAIT->PROBE, entry_score_crossed_58:55.9->68.7, entry_score_crossed_68:55.9->68.7</p>
+    <p>Updated: 2026-09-24T14:42:32.190857+08:00 (UTC+8)</p>
     <h2>入场计划（候选信号，不自动下单）</h2><pre>{
   "buy_score": 67.6,
-  "entry_score": 55.9,
-  "location_score": 41.8,
+  "entry_score": 68.7,
+  "location_score": 70.3,
   "support_quality": 85.0,
   "resistance_validity": 46.0,
-  "entry_state": "WAIT",
-  "entry_mode": null,
-  "entry_label": "WAIT",
+  "entry_state": "PROBE",
+  "entry_mode": "PULLBACK",
+  "entry_label": "LIMIT/PROBE",
   "support_anchor": 164.6022,
   "support_anchor_sources": [
     "15m SuperTrend",
@@ -19,8 +19,8 @@
     "4H MA20",
     "15m MA10"
   ],
-  "support_distance_atr": 1.163858,
-  "support_distance_score": 41.8,
+  "support_distance_atr": 0.59427,
+  "support_distance_score": 70.3,
   "limit_order_zone": [
     164.538996,
     164.791811
@@ -32,7 +32,7 @@
   "limit_order_allowed": true,
   "limit_order_note": "仅预挂小仓；成交时可能尚未确认支撑，不能视为正式买入确认",
   "invalidation_level": 163.7207,
-  "risk_reward_ratio": 0.7663,
+  "risk_reward_ratio": 1.0636,
   "risk_reward_target": 165.9273,
   "has_position": false,
   "breakout_level": null,
@@ -42,11 +42,11 @@
   "chase_penalty": 0,
   "probe_signal_count": 2,
   "rules": {
-    "near_support": false,
+    "near_support": true,
     "valid_atr": true,
     "pullback_touch": false,
     "risk_reward_ok": false,
-    "near_support_probe": false,
+    "near_support_probe": true,
     "decisive_break": false,
     "reclaimed_support": true,
     "15m_HL": true,
@@ -55,7 +55,7 @@
     "15m_rsi_probe_ok": true,
     "volume_ratio_ge_probe": false,
     "volume_ratio_ge_confirm": false,
-    "probe_candidate": false,
+    "probe_candidate": true,
     "pullback_confirmed": false,
     "breakout_retest_candidate": false,
     "add_candidate": false
