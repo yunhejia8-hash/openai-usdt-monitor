@@ -183,30 +183,30 @@ def low_risk_entry(price,frames,lvls):
 
     # Pullback confirmation is rule based: touch/near support, no decisive break,
     # reclaim above support, HL structure, plus ST or volume confirmation.
-    near_support=s_level is not None and abs(price-s_level)<=0.35*atr
+    near_support=s_level is not None and abs(price-s_level)<=0.60*atr
     decisive_break=s_level is not None and price < s_level-0.20*atr
     reclaimed=s_level is not None and price>=s_level
     hl=f15["structure"]["label"]=="HH_HL"
     confirm_st=f15["supertrend_direction"]=="up"
-    confirm_vol=float(f15["volume_ratio_vs_20"])>=1.20
+    confirm_vol=float(f15["volume_ratio_vs_20"])>=1.10
     pullback_confirmed=near_support and not decisive_break and reclaimed and hl and (confirm_st or confirm_vol)
 
     # Anti-chase penalty: extended price cannot be rescued by bullish indicators.
     ext=float(f15.get("ma20_extension_atr",0))
     chase_penalty=25 if ext>2 else 0
-    hard_no_chase=ext>3 or location<60
+    hard_no_chase=ext>3 or location<55
     entry_score=clamp(.45*location+.20*support_quality+.15*clamp(trend)+.10*clamp(momentum)+.10*volume-chase_penalty)
 
     # Breakout-retest: do not buy the initial breakout. A former resistance must
     # first be below price and close enough to act as support on a later snapshot.
     retest_candidate=False
     if r_level is not None and price>r_level:
-        retest_candidate=(price-r_level)<=0.35*atr and f15["supertrend_direction"]=="up" and hl and (confirm_vol or f15["macd_hist_okx"]>0)
+        retest_candidate=(price-r_level)<=0.50*atr and f15["supertrend_direction"]=="up" and hl and (confirm_vol or f15["macd_hist_okx"]>0)
 
-    if pullback_confirmed and buy_score>=70 and entry_score>=75 and not hard_no_chase:
+    if pullback_confirmed and buy_score>=65 and entry_score>=70 and not hard_no_chase:
         entry_state="CONFIRMED"
         entry_mode="PULLBACK"
-    elif retest_candidate and buy_score>=70 and entry_score>=70 and ext<=2:
+    elif retest_candidate and buy_score>=65 and entry_score>=68 and ext<=2:
         entry_state="CONFIRMED"
         entry_mode="BREAKOUT_RETEST"
     elif near_support and not decisive_break:
@@ -224,8 +224,8 @@ def low_risk_entry(price,frames,lvls):
         "rules":{"near_support":near_support,"decisive_break":decisive_break,"reclaimed_support":reclaimed,
                  "15m_HL":hl,"15m_supertrend_up":confirm_st,"volume_ratio_ge_1_2":confirm_vol,
                  "breakout_retest_candidate":retest_candidate},
-        "thresholds":{"buy_score_min":70,"entry_score_pullback_min":75,"location_min":60,
-                      "near_support_atr":0.35,"break_buffer_atr":0.20,"volume_ratio_confirm":1.20,
+        "thresholds":{"buy_score_min":65,"entry_score_pullback_min":70,"location_min":55,
+                      "near_support_atr":0.60,"break_buffer_atr":0.20,"volume_ratio_confirm":1.10,
                       "chase_penalty_above_ma20_atr":2.0,"hard_no_chase_above_ma20_atr":3.0}
     }
 
@@ -343,7 +343,7 @@ def main():
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
         "strategy":strategy_state(float(t["last"]),frames,lvls),
-        "notes":["low-risk entry v1: pullback + breakout-retest, anti-chase hard gate","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
+        "notes":["low-risk entry v2: calibrated pullback + breakout-retest, anti-chase hard gate","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
