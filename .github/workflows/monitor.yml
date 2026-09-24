@@ -2,11 +2,10 @@ name: Update OPENAIUSDT market snapshot
 
 on:
   schedule:
-    # GitHub scheduled workflows can occasionally be delayed or skipped.
-    # Keep the primary hourly run at :17 and add a :47 fallback so the
-    # snapshot is normally no more than ~30 minutes stale.
-    - cron: "17 * * * *"
-    - cron: "47 * * * *"
+    # Run every 30 minutes, offset from the top/bottom of the hour to reduce
+    # GitHub Actions schedule congestion. Scheduled runs are best-effort and
+    # can still be delayed by GitHub, but :13/:43 is less congestion-prone.
+    - cron: "13,43 * * * *"
   workflow_dispatch:
   push:
     paths:
