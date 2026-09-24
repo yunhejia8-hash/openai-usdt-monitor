@@ -11,6 +11,7 @@ on:
   push:
     paths:
       - "monitor.py"
+      - "test_monitor.py"
       - "requirements.txt"
       - ".github/workflows/monitor.yml"
 
@@ -38,7 +39,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Validate strategy
+        run: |
+          python -m unittest -v
+          python -m py_compile monitor.py test_monitor.py
+
       - name: Fetch OKX market data
+        env:
+          HAS_POSITION: ${{ vars.HAS_POSITION || 'false' }}
         shell: bash
         run: |
           set -e
