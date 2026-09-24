@@ -166,49 +166,108 @@ def low_risk_entry(price,frames,lvls):
     trend += 15 if f4["supertrend_direction"]=="up" else -15
     trend += 15 if f1["trend"]=="bullish" else (-15 if f1["trend"]=="bearish" else 0)
     trend += 10 if f15["trend"]=="bullish" else (-10 if f15["trend"]=="bearish" else 0)
+
     momentum=50
     momentum += 15 if f1["macd_hist_okx"]>0 else -15
     momentum += 10 if f15["macd_hist_okx"]>0 else -10
     momentum += 10 if 50<=f15["rsi6"]<=70 else (-10 if f15["rsi6"]<40 else -5 if f15["rsi6"]>75 else 0)
+
     struct=50
     struct += 20 if f15["structure"]["label"]=="HH_HL" else (-20 if f15["structure"]["label"]=="LH_LL" else 0)
     struct += 15 if f1["structure"]["label"]=="HH_HL" else (-15 if f1["structure"]["label"]=="LH_LL" else 0)
-    volume=clamp(50+(float(f15["volume_ratio_vs_20"])-1)*35)
 
-    # Support quality is deterministic and deliberately conservative.
-    support_quality=0 if not s else clamp(30+8*len(s["sources"])+(15 if any(x.startswith("4H ") for x in s["sources"]) else 0)+(10 if any("recent low" in x for x in s["sources"]) else 0))
-    resistance_validity=0 if not r else clamp(30+8*len(r["sources"])+(15 if any(x.startswith("4H ") for x in r["sources"]) else 0)+(10 if any("recent high" in x for x in r["sources"]) else 0))
+    volume_ratio=float(f15["volume_ratio_vs_20"])
+    volume=clamp(50+(volume_ratio-1)*35)
+
+    # Support / resistance quality.
+    support_quality=0 if not s else clamp(
+        30+8*len(s["sources"])
+        +(15 if any(x.startswith("4H ") for x in s["sources"]) else 0)
+        +(10 if any("recent low" in x for x in s["sources"]) else 0)
+    )
+    resistance_validity=0 if not r else clamp(
+        30+8*len(r["sources"])
+        +(15 if any(x.startswith("4H ") for x in r["sources"]) else 0)
+        +(10 if any("recent high" in x for x in r["sources"]) else 0)
+    )
     resistance_bull=100-resistance_validity
-    buy_score=clamp(.25*support_quality+.20*resistance_bull+.20*clamp(trend)+.15*clamp(momentum)+.10*volume+.10*clamp(struct))
+    buy_score=clamp(
+        .25*support_quality+.20*resistance_bull+.20*clamp(trend)
+        +.15*clamp(momentum)+.10*volume+.10*clamp(struct)
+    )
 
-    # Pullback confirmation is rule based: touch/near support, no decisive break,
-    # reclaim above support, HL structure, plus ST or volume confirmation.
+    # Shared confirmations.
     near_support=s_level is not None and abs(price-s_level)<=0.60*atr
+    near_support_probe=s_level is not None and abs(price-s_level)<=0.80*atr
     decisive_break=s_level is not None and price < s_level-0.20*atr
     reclaimed=s_level is not None and price>=s_level
     hl=f15["structure"]["label"]=="HH_HL"
     confirm_st=f15["supertrend_direction"]=="up"
-    confirm_vol=float(f15["volume_ratio_vs_20"])>=1.10
-    pullback_confirmed=near_support and not decisive_break and reclaimed and hl and (confirm_st or confirm_vol)
+    macd15_pos=f15["macd_hist_okx"]>0
+    confirm_vol=volume_ratio>=1.10
+    probe_vol=volume_ratio>=0.85
+    rsi_probe_ok=45<=float(f15["rsi6"])<=75
+    probe_signal_count=sum(bool(x) for x in (confirm_st,macd15_pos,probe_vol,rsi_probe_ok))
 
     # Anti-chase penalty: extended price cannot be rescued by bullish indicators.
     ext=float(f15.get("ma20_extension_atr",0))
     chase_penalty=25 if ext>2 else 0
     hard_no_chase=ext>3 or location<55
-    entry_score=clamp(.45*location+.20*support_quality+.15*clamp(trend)+.10*clamp(momentum)+.10*volume-chase_penalty)
+    entry_score=clamp(
+        .45*location+.20*support_quality+.15*clamp(trend)
+        +.10*clamp(momentum)+.10*volume-chase_penalty
+    )
 
-    # Breakout-retest: do not buy the initial breakout. A former resistance must
-    # first be below price and close enough to act as support on a later snapshot.
+    # PROBE: small test-position candidate. Earlier than full confirmation, but
+    # only near reclaimed support and never while the anti-chase gate is active.
+    probe_candidate=(
+        near_support_probe and not decisive_break and reclaimed and not hard_no_chase
+        and location>=60 and support_quality>=38
+        and buy_score>=55 and entry_score>=58
+        and probe_signal_count>=2
+    )
+
+    # CONFIRMED pullback: requires structural HL plus ST or volume confirmation.
+    pullback_confirmed=(
+        near_support and not decisive_break and reclaimed and hl
+        and (confirm_st or confirm_vol)
+        and buy_score>=65 and entry_score>=70 and not hard_no_chase
+    )
+
+    # Breakout-retest: never buy the first breakout. Former resistance must be
+    # below price and close enough to act as support on a later snapshot.
     retest_candidate=False
     if r_level is not None and price>r_level:
-        retest_candidate=(price-r_level)<=0.50*atr and f15["supertrend_direction"]=="up" and hl and (confirm_vol or f15["macd_hist_okx"]>0)
+        retest_candidate=(
+            (price-r_level)<=0.50*atr
+            and confirm_st and hl and (confirm_vol or macd15_pos)
+            and buy_score>=65 and entry_score>=68 and ext<=2
+        )
 
-    if pullback_confirmed and buy_score>=65 and entry_score>=70 and not hard_no_chase:
+    confirmed_candidate=pullback_confirmed or retest_candidate
+
+    # ADD: stronger continuation/retest conditions for an existing position.
+    # This is only a candidate signal; the script does not know account holdings.
+    add_candidate=(
+        confirmed_candidate
+        and f4["supertrend_direction"]=="up"
+        and f1["trend"]!="bearish"
+        and f15["trend"]=="bullish"
+        and hl and confirm_st and confirm_vol and macd15_pos
+        and (f1["macd_hist_okx"]>0 or f1["trend"]=="bullish")
+        and buy_score>=72 and entry_score>=75
+        and ext<=1.5 and location>=60
+    )
+
+    if add_candidate:
+        entry_state="ADD"
+        entry_mode="BREAKOUT_RETEST" if retest_candidate else "PULLBACK"
+    elif confirmed_candidate:
         entry_state="CONFIRMED"
+        entry_mode="BREAKOUT_RETEST" if retest_candidate else "PULLBACK"
+    elif probe_candidate:
+        entry_state="PROBE"
         entry_mode="PULLBACK"
-    elif retest_candidate and buy_score>=65 and entry_score>=68 and ext<=2:
-        entry_state="CONFIRMED"
-        entry_mode="BREAKOUT_RETEST"
     elif near_support and not decisive_break:
         entry_state="SETUP"
         entry_mode="PULLBACK"
@@ -217,16 +276,53 @@ def low_risk_entry(price,frames,lvls):
         entry_mode=None
 
     return {
-        "buy_score":round(buy_score,1),"entry_score":round(entry_score,1),"location_score":round(location,1),
-        "support_quality":round(support_quality,1),"resistance_validity":round(resistance_validity,1),
-        "entry_state":entry_state,"entry_mode":entry_mode,"hard_no_chase":hard_no_chase,
-        "ma20_extension_atr":round(ext,3),"chase_penalty":chase_penalty,
-        "rules":{"near_support":near_support,"decisive_break":decisive_break,"reclaimed_support":reclaimed,
-                 "15m_HL":hl,"15m_supertrend_up":confirm_st,"volume_ratio_ge_1_2":confirm_vol,
-                 "breakout_retest_candidate":retest_candidate},
-        "thresholds":{"buy_score_min":65,"entry_score_pullback_min":70,"location_min":55,
-                      "near_support_atr":0.60,"break_buffer_atr":0.20,"volume_ratio_confirm":1.10,
-                      "chase_penalty_above_ma20_atr":2.0,"hard_no_chase_above_ma20_atr":3.0}
+        "buy_score":round(buy_score,1),
+        "entry_score":round(entry_score,1),
+        "location_score":round(location,1),
+        "support_quality":round(support_quality,1),
+        "resistance_validity":round(resistance_validity,1),
+        "entry_state":entry_state,
+        "entry_mode":entry_mode,
+        "hard_no_chase":hard_no_chase,
+        "ma20_extension_atr":round(ext,3),
+        "chase_penalty":chase_penalty,
+        "probe_signal_count":probe_signal_count,
+        "rules":{
+            "near_support":near_support,
+            "near_support_probe":near_support_probe,
+            "decisive_break":decisive_break,
+            "reclaimed_support":reclaimed,
+            "15m_HL":hl,
+            "15m_supertrend_up":confirm_st,
+            "15m_macd_positive":macd15_pos,
+            "15m_rsi_probe_ok":rsi_probe_ok,
+            "volume_ratio_ge_probe":probe_vol,
+            "volume_ratio_ge_confirm":confirm_vol,
+            "probe_candidate":probe_candidate,
+            "pullback_confirmed":pullback_confirmed,
+            "breakout_retest_candidate":retest_candidate,
+            "add_candidate":add_candidate
+        },
+        "thresholds":{
+            "probe_buy_score_min":55,
+            "probe_entry_score_min":58,
+            "probe_location_min":60,
+            "probe_support_quality_min":38,
+            "probe_signal_count_min":2,
+            "probe_near_support_atr":0.80,
+            "confirmed_buy_score_min":65,
+            "confirmed_entry_score_pullback_min":70,
+            "confirmed_entry_score_retest_min":68,
+            "add_buy_score_min":72,
+            "add_entry_score_min":75,
+            "add_max_ma20_extension_atr":1.5,
+            "near_support_atr":0.60,
+            "break_buffer_atr":0.20,
+            "volume_ratio_probe":0.85,
+            "volume_ratio_confirm":1.10,
+            "chase_penalty_above_ma20_atr":2.0,
+            "hard_no_chase_above_ma20_atr":3.0
+        }
     }
 
 def strategy_state(price, frames, lvls):
@@ -246,25 +342,68 @@ def strategy_state(price, frames, lvls):
     score += 1 if f1["macd_hist_okx"]>0 else -1
     bias="bullish" if score>=4 else ("bearish" if score<=-4 else "mixed")
 
-    if entry["entry_state"]=="CONFIRMED": state="低风险买入/加仓候选"
-    elif entry["entry_state"]=="SETUP": state="等待低风险确认"
-    elif bias=="bearish" and s1 is not None and price<s1: state="减仓"
-    else: state="观望"
+    entry_state=entry["entry_state"]
+    if entry_state=="ADD":
+        state="加仓候选"
+    elif entry_state=="CONFIRMED":
+        state="正式买入候选"
+    elif entry_state=="PROBE":
+        state="试仓候选"
+    elif entry_state=="SETUP":
+        state="等待低风险确认"
+    elif bias=="bearish" and s1 is not None and price<s1:
+        state="减仓"
+    else:
+        state="观望"
 
+    # Risk layer remains conservative. ADD is never treated as permission to chase.
     invalidation=s2 if bias=="bullish" and s2 is not None else (s1 if s1 is not None else f4["supertrend_10_3"])
+
     return {
-        "state":state,"bias":bias,"score":score,
-        "support_primary":s1,"support_secondary":s2,"resistance_primary":r1,"resistance_secondary":r2,
-        "invalidation_level":invalidation,"low_risk_entry":entry,
+        "state":state,
+        "bias":bias,
+        "score":score,
+        "support_primary":s1,
+        "support_secondary":s2,
+        "resistance_primary":r1,
+        "resistance_secondary":r2,
+        "invalidation_level":invalidation,
+        "low_risk_entry":entry,
         "triggers":{
-            "buy_or_add":{"enabled":entry["entry_state"]=="CONFIRMED",
-                "condition":"仅允许两类低风险入场：回踩强支撑确认，或突破后回踩原阻力确认；禁止初次突破追涨",
-                "trigger_above":r1,"confirmation_above":r2},
-            "reduce_risk":{"condition":"15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
-                "trigger_below":s1,"hard_invalidation_below":invalidation}},
-        "reason_codes":["4H_ST_"+f4["supertrend_direction"],"1H_"+f1["trend"],"15m_"+f15["trend"],
-            "15m_structure_"+f15["structure"]["label"],"1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG",
-            "ENTRY_"+entry["entry_state"]]
+            "probe":{
+                "enabled":entry_state=="PROBE",
+                "condition":"仅在支撑附近、未有效跌破、已重新站回支撑且至少两个早期确认信号成立时允许试仓；禁止追涨",
+                "position_size_class":"small"
+            },
+            "confirmed_buy":{
+                "enabled":entry_state in ("CONFIRMED","ADD"),
+                "condition":"回踩强支撑完成结构确认，或突破后回踩原阻力完成确认；禁止第一次突破追涨",
+                "trigger_above":r1,
+                "confirmation_above":r2
+            },
+            "add":{
+                "enabled":entry_state=="ADD",
+                "condition":"仅针对已有仓位：多周期方向未转弱、15m HH_HL + SuperTrend向上 + 放量 + MACD为正，并且价格未明显远离MA20",
+                "requires_existing_position":True
+            },
+            "buy_or_add":{
+                "enabled":entry_state in ("CONFIRMED","ADD"),
+                "condition":"兼容旧字段：正式买入或加仓候选；试仓请读取 triggers.probe"
+            },
+            "reduce_risk":{
+                "condition":"15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
+                "trigger_below":s1,
+                "hard_invalidation_below":invalidation
+            }
+        },
+        "reason_codes":[
+            "4H_ST_"+f4["supertrend_direction"],
+            "1H_"+f1["trend"],
+            "15m_"+f15["trend"],
+            "15m_structure_"+f15["structure"]["label"],
+            "1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG",
+            "ENTRY_"+entry_state
+        ]
     }
 
 def load_previous_snapshot():
@@ -293,6 +432,11 @@ def detect_material_change(previous,current):
 
     if prev_s.get("state")!=cur_s.get("state"):
         reasons.append(f"state:{prev_s.get('state')}->{cur_s.get('state')}")
+
+    prev_entry=prev_s.get("low_risk_entry",{}).get("entry_state")
+    cur_entry=cur_s.get("low_risk_entry",{}).get("entry_state")
+    if prev_entry and cur_entry and prev_entry!=cur_entry:
+        reasons.append(f"entry_state:{prev_entry}->{cur_entry}")
     if prev_s.get("bias")!=cur_s.get("bias"):
         reasons.append(f"bias:{prev_s.get('bias')}->{cur_s.get('bias')}")
 
@@ -338,12 +482,12 @@ def main():
     for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
     lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":4,"instrument":INST_ID,
+        "schema_version":5,"instrument":INST_ID,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
         "strategy":strategy_state(float(t["last"]),frames,lvls),
-        "notes":["low-risk entry v2: calibrated pullback + breakout-retest, anti-chase hard gate","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
+        "notes":["low-risk entry v3: PROBE -> CONFIRMED -> ADD with anti-chase gates","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
