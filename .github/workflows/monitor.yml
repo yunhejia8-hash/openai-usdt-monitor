@@ -2,7 +2,11 @@ name: Update OPENAIUSDT market snapshot
 
 on:
   schedule:
+    # GitHub scheduled workflows can occasionally be delayed or skipped.
+    # Keep the primary hourly run at :17 and add a :47 fallback so the
+    # snapshot is normally no more than ~30 minutes stale.
     - cron: "17 * * * *"
+    - cron: "47 * * * *"
   workflow_dispatch:
   push:
     paths:
@@ -13,10 +17,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: openai-usdt-monitor
+  cancel-in-progress: false
+
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +39,20 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Fetch OKX market data
-        run: python monitor.py
+        shell: bash
+        run: |
+          set -e
+          for attempt in 1 2 3; do
+            if python monitor.py; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "monitor.py failed after 3 attempts"
+              exit 1
+            fi
+            echo "Attempt $attempt failed; retrying in 20 seconds..."
+            sleep 20
+          done
 
       - name: Commit snapshot
         run: |
