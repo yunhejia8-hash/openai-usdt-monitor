@@ -1,61 +1,58 @@
 <!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
-    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>164.79</b> · Regime: <b>mixed</b> · Strategy: <b>试仓候选</b></p>
-    <p>Material change: <b>True</b> · Reasons: state:观望->试仓候选, entry_state:WAIT->PROBE, entry_score_crossed_58:55.9->68.7, entry_score_crossed_68:55.9->68.7</p>
-    <p>Updated: 2026-09-24T14:42:32.190857+08:00 (UTC+8)</p>
+    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>164.09</b> · Regime: <b>mixed</b> · Strategy: <b>观望</b></p>
+    <p>Material change: <b>True</b> · Reasons: state:试仓候选->观望, entry_state:PROBE->WAIT, buy_score_crossed_55:67.6->45.1, buy_score_crossed_65:67.6->45.1, entry_score_crossed_58:68.7->26.8, entry_score_crossed_68:68.7->26.8, limit_order_zone_changed:[164.538996, 164.791811]->[162.1959, 162.491901], confirmed_entry_zone_changed:[164.6022, 164.791811]->[162.2699, 162.491901], limit_order_allowed:True->False, hard_no_chase:False->True, bias:bullish->mixed, support_shift:164.6022->162.2699, resistance_shift:165.9273->164.4035, invalidation_shift:163.7207->160.9591, price_crossed_support_down:164.6022, score_change:5->1</p>
+    <p>Updated: 2026-09-24T16:18:06.045672+08:00 (UTC+8)</p>
     <h2>入场计划（候选信号，不自动下单）</h2><pre>{
-  "buy_score": 67.6,
-  "entry_score": 68.7,
-  "location_score": 70.3,
-  "support_quality": 85.0,
-  "resistance_validity": 46.0,
-  "entry_state": "PROBE",
-  "entry_mode": "PULLBACK",
-  "entry_label": "LIMIT/PROBE",
-  "support_anchor": 164.6022,
+  "buy_score": 45.1,
+  "entry_score": 26.8,
+  "location_score": 0.0,
+  "support_quality": 56.0,
+  "resistance_validity": 70.0,
+  "entry_state": "WAIT",
+  "entry_mode": null,
+  "entry_label": "WAIT",
+  "support_anchor": 162.2699,
   "support_anchor_sources": [
-    "15m SuperTrend",
-    "1H MA20",
-    "15m MA20",
-    "4H MA20",
-    "15m MA10"
+    "1H BOLL lower",
+    "15m recent low"
   ],
-  "support_distance_atr": 0.59427,
-  "support_distance_score": 70.3,
+  "support_distance_atr": 4.919163,
+  "support_distance_score": 0.0,
   "limit_order_zone": [
-    164.538996,
-    164.791811
+    162.1959,
+    162.491901
   ],
   "confirmed_entry_zone": [
-    164.6022,
-    164.791811
+    162.2699,
+    162.491901
   ],
-  "limit_order_allowed": true,
+  "limit_order_allowed": false,
   "limit_order_note": "仅预挂小仓；成交时可能尚未确认支撑，不能视为正式买入确认",
-  "invalidation_level": 163.7207,
-  "risk_reward_ratio": 1.0636,
-  "risk_reward_target": 165.9273,
+  "invalidation_level": 160.9591,
+  "risk_reward_ratio": 0.1001,
+  "risk_reward_target": 164.4035,
   "has_position": false,
   "breakout_level": null,
   "breakout_ts": null,
-  "hard_no_chase": false,
-  "ma20_extension_atr": 0.701,
+  "hard_no_chase": true,
+  "ma20_extension_atr": -1.946,
   "chase_penalty": 0,
-  "probe_signal_count": 2,
+  "probe_signal_count": 0,
   "rules": {
-    "near_support": true,
+    "near_support": false,
     "valid_atr": true,
     "pullback_touch": false,
     "risk_reward_ok": false,
-    "near_support_probe": true,
+    "near_support_probe": false,
     "decisive_break": false,
     "reclaimed_support": true,
-    "15m_HL": true,
-    "15m_supertrend_up": true,
+    "15m_HL": false,
+    "15m_supertrend_up": false,
     "15m_macd_positive": false,
-    "15m_rsi_probe_ok": true,
+    "15m_rsi_probe_ok": false,
     "volume_ratio_ge_probe": false,
     "volume_ratio_ge_confirm": false,
-    "probe_candidate": true,
+    "probe_candidate": false,
     "pullback_confirmed": false,
     "breakout_retest_candidate": false,
     "add_candidate": false
@@ -84,68 +81,70 @@
     "add_rr_min": 2.0
   }
 }</pre>
-    <table border="1" cellpadding="6" cellspacing="0"><tr><th>周期</th><th>收盘</th><th>趋势</th><th>结构</th><th>RSI6</th><th>SuperTrend</th></tr><tr><td>15m</td><td>164.8200</td><td>bullish</td><td>HH_HL</td><td>52.3</td><td>164.3506</td></tr><tr><td>1H</td><td>164.7100</td><td>neutral</td><td>HH_HL</td><td>60.4</td><td>166.1190</td></tr><tr><td>4H</td><td>164.8800</td><td>neutral</td><td>expanding</td><td>46.9</td><td>160.9591</td></tr></table>
+    <table border="1" cellpadding="6" cellspacing="0"><tr><th>周期</th><th>收盘</th><th>趋势</th><th>结构</th><th>RSI6</th><th>SuperTrend</th></tr><tr><td>15m</td><td>164.0200</td><td>bearish</td><td>LH_LL</td><td>24.9</td><td>165.3450</td></tr><tr><td>1H</td><td>164.4800</td><td>neutral</td><td>HH_HL</td><td>50.6</td><td>166.1190</td></tr><tr><td>4H</td><td>164.4800</td><td>neutral</td><td>expanding</td><td>43.9</td><td>160.9591</td></tr></table>
     <h2>支撑</h2><pre>[
   {
-    "level": 164.6022,
+    "level": 162.2699,
     "sources": [
-      "15m SuperTrend",
-      "1H MA20",
-      "15m MA20",
-      "4H MA20",
-      "15m MA10"
-    ],
-    "strength": 5
-  },
-  {
-    "level": 163.7207,
-    "sources": [
-      "15m BOLL lower",
-      "1H MA10"
+      "1H BOLL lower",
+      "15m recent low"
     ],
     "strength": 2
   },
   {
-    "level": 162.46,
+    "level": 160.9591,
     "sources": [
-      "15m recent low"
+      "4H SuperTrend"
     ],
     "strength": 1
   },
   {
-    "level": 161.1631,
+    "level": 158.4326,
     "sources": [
-      "4H SuperTrend",
-      "1H BOLL lower"
+      "4H BOLL lower"
     ],
-    "strength": 2
+    "strength": 1
+  },
+  {
+    "level": 156.68,
+    "sources": [
+      "1H recent low"
+    ],
+    "strength": 1
   }
 ]</pre>
     <h2>阻力</h2><pre>[
   {
-    "level": 165.9273,
+    "level": 164.4035,
     "sources": [
+      "15m BOLL lower",
+      "1H MA20",
+      "1H MA10",
+      "15m MA10",
+      "15m MA20"
+    ],
+    "strength": 5
+  },
+  {
+    "level": 165.2409,
+    "sources": [
+      "4H MA20",
       "15m BOLL upper",
-      "1H SuperTrend"
+      "15m SuperTrend"
     ],
-    "strength": 2
+    "strength": 3
   },
   {
-    "level": 166.692,
+    "level": 166.2311,
     "sources": [
-      "4H MA10"
-    ],
-    "strength": 1
-  },
-  {
-    "level": 167.7658,
-    "sources": [
+      "1H SuperTrend",
+      "4H MA10",
       "1H BOLL upper"
     ],
-    "strength": 1
+    "strength": 3
   },
   {
-    "level": 169.4,
+    "level": 168.95,
     "sources": [
       "15m recent high"
     ],
