@@ -258,11 +258,19 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         limit_zone is not None and not decisive_break and ext<=3
         and support_quality>=38 and buy_score>=55 and probe_signal_count>=2
     )
+    # PROBE v5: intentionally accepts lower confirmation in exchange for small size + mandatory tight stop.
+    # It must still be near a valid support and must not be a decisive breakdown.
+    probe_stop=(s_level-0.75*atr) if s_level is not None and valid_atr else None
+    probe_risk=(price-probe_stop) if probe_stop is not None else None
+    probe_reward=(r_level-price) if r_level is not None else None
+    probe_rr=probe_reward/probe_risk if probe_risk is not None and probe_risk>0 and probe_reward is not None and probe_reward>0 else None
     probe_candidate=(
-        limit_allowed and not hard_no_chase
-        and location>=60 and support_quality>=38
-        and buy_score>=55 and entry_score>=58
-        and probe_signal_count>=2
+        limit_allowed and not decisive_break
+        and near_support_probe and location>=55 and support_quality>=38
+        and buy_score>=52 and entry_score>=52
+        and probe_signal_count>=1
+        and probe_stop is not None and probe_stop<price
+        and probe_rr is not None and probe_rr>=1.0
     )
 
     # 以已收盘 K 线的触及、收回及阳线作为回踩证据，不能仅凭现价靠近支撑。
@@ -325,7 +333,13 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         "limit_order_zone":limit_zone,
         "confirmed_entry_zone":confirmed_zone,
         "limit_order_allowed":limit_allowed,
-        "limit_order_note":"仅预挂小仓；成交时可能尚未确认支撑，不能视为正式买入确认",
+        "limit_order_note":"PROBE仅允许小仓试错，必须同步设置probe_stop；未形成CONFIRMED前不得按主仓处理",
+        "probe_entry_price":round(price,6) if probe_candidate else None,
+        "probe_stop":round(probe_stop,6) if probe_stop is not None else None,
+        "probe_stop_distance":round(probe_risk,6) if probe_risk is not None else None,
+        "probe_rr":round(probe_rr,4) if probe_rr is not None else None,
+        "probe_risk_pct_of_entry":round(100*probe_risk/price,4) if probe_risk is not None and price>0 else None,
+        "probe_position_size_class":"small",
         "invalidation_level":round(invalidation,6) if invalidation is not None else None,
         "risk_reward_ratio":round(rr,4) if rr is not None else None,
         "risk_reward_target":r_level,
@@ -356,12 +370,14 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
             "add_candidate":add_candidate
         },
         "thresholds":{
-            "probe_buy_score_min":55,
-            "probe_entry_score_min":58,
-            "probe_location_min":60,
+            "probe_buy_score_min":52,
+            "probe_entry_score_min":52,
+            "probe_location_min":55,
             "probe_support_quality_min":38,
-            "probe_signal_count_min":2,
+            "probe_signal_count_min":1,
             "probe_near_support_atr":0.80,
+            "probe_stop_below_support_atr":0.75,
+            "probe_rr_min":1.0,
             "confirmed_buy_score_min":65,
             "confirmed_entry_score_pullback_min":70,
             "confirmed_entry_score_retest_min":68,
@@ -555,12 +571,12 @@ def main():
     for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
     lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":6,"instrument":INST_ID,
+        "schema_version":7,"instrument":INST_ID,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
         "strategy":strategy_state(float(t["last"]),frames,lvls,previous,os.getenv("HAS_POSITION","false").lower()=="true"),
-        "notes":["low-risk entry v4: LIMIT/PROBE -> CONFIRMED -> ADD; WAIT forbids immediate entry; limit_order_allowed is a separate pending-order decision","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
+        "notes":["low-risk entry v5: PROBE uses small size + mandatory tight stop; CONFIRMED expands only after structure confirmation; ADD requires confirmed continuation","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
