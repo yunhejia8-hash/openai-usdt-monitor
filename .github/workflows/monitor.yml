@@ -1,4 +1,4 @@
-# Manual refresh trigger: 2026-09-25
+# Manual refresh trigger: 2026-09-25-2
 name: Update OPENAIUSDT market snapshot
 
 on:
