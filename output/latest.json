@@ -1,21 +1,21 @@
 {
   "schema_version": 5,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-24T03:32:43.921887+00:00",
-  "generated_at_sgt": "2026-09-24T11:32:43.927454+08:00",
+  "generated_at_utc": "2026-09-24T03:41:32.632553+00:00",
+  "generated_at_sgt": "2026-09-24T11:41:32.632960+08:00",
   "ticker": {
-    "last": 165.58,
-    "lastSz": 0.15,
-    "askPx": 165.58,
-    "askSz": 2.14,
-    "bidPx": 165.46,
-    "bidSz": 0.01,
-    "open24h": 168.63,
+    "last": 165.39,
+    "lastSz": 0.02,
+    "askPx": 165.4,
+    "askSz": 0.09,
+    "bidPx": 165.39,
+    "bidSz": 0.24,
+    "open24h": 168.89,
     "high24h": 169.4,
     "low24h": 162.46,
-    "vol24h": 4135.4,
-    "volCcy24h": 4135.4,
-    "ts": 1790220762080
+    "vol24h": 4139.0,
+    "volCcy24h": 4139.0,
+    "ts": 1790221291273
   },
   "summary": {
     "regime": "mixed",
@@ -226,8 +226,8 @@
     "invalidation_level": 165.1247,
     "low_risk_entry": {
       "buy_score": 51.8,
-      "entry_score": 27.7,
-      "location_score": 54.2,
+      "entry_score": 36.3,
+      "location_score": 73.3,
       "support_quality": 46.0,
       "resistance_validity": 38.0,
       "entry_state": "WAIT",
@@ -238,7 +238,7 @@
       "probe_signal_count": 2,
       "rules": {
         "near_support": false,
-        "near_support_probe": false,
+        "near_support_probe": true,
         "decisive_break": false,
         "reclaimed_support": true,
         "15m_HL": false,
@@ -319,9 +319,9 @@
   "change": {
     "material": false,
     "reasons": [],
-    "level_tolerance": 0.66232,
-    "previous_generated_at": "2026-09-24T11:06:05.280261+08:00",
-    "previous_price": 165.41,
-    "current_price": 165.58
+    "level_tolerance": 0.66156,
+    "previous_generated_at": "2026-09-24T11:32:43.927454+08:00",
+    "previous_price": 165.58,
+    "current_price": 165.39
   }
 }
