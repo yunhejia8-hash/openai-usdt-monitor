@@ -32,6 +32,16 @@ class EntryTests(unittest.TestCase):
                 entry(sample())["entry_state"],entry(sample(has_position=True))["entry_state"]]
         self.assertEqual(states,["WAIT","PROBE","CONFIRMED","ADD"])
 
+    def test_probe_has_mandatory_stop_and_rr(self):
+        s=sample(164.55,volume=0.9)
+        e=entry(s)
+        self.assertEqual(e["entry_state"],"PROBE")
+        self.assertIsNotNone(e["probe_stop"])
+        self.assertLess(e["probe_stop"],s["ticker"]["last"])
+        self.assertGreaterEqual(e["probe_rr"],1.0)
+        self.assertGreater(e["probe_stop_distance"],0)
+        self.assertEqual(e["probe_position_size_class"],"small")
+
     def test_requested_zone_and_no_chase(self):
         e=entry(sample(164.95))
         self.assertTrue(e["hard_no_chase"])
@@ -147,7 +157,7 @@ class EntryTests(unittest.TestCase):
                 patch.dict("os.environ",{"HAS_POSITION":"true"}):
             monitor.main()
             written=json.loads((Path(folder)/"latest.json").read_text(encoding="utf-8"))
-            self.assertEqual(written["schema_version"],6)
+            self.assertEqual(written["schema_version"],7)
             self.assertEqual(entry(written)["entry_state"],"ADD")
             self.assertIn("limit_order_zone",(Path(folder)/"index.html").read_text(encoding="utf-8"))
             monitor.main()
