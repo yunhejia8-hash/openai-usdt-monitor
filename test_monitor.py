@@ -38,6 +38,10 @@ def short_sample(price=164.45, volume=1.5, has_short_position=False):
     return snap["strategy"]["low_risk_entry"]
 
 
+def entry(snap):
+    return snap["strategy"]["low_risk_entry"]
+
+
 class EntryTests(unittest.TestCase):
     def test_state_sequence(self):
         states=[entry(sample(164.95))["entry_state"],entry(sample(volume=0.9))["entry_state"],
