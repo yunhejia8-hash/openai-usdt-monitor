@@ -396,7 +396,178 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         }
     }
 
-def strategy_state(price, frames, lvls, previous=None, has_position=False):
+
+def low_risk_short(price,frames,lvls,has_short_position=False):
+    f15,f1,f4=frames["15m"],frames["1H"],frames["4H"]
+    supports=lvls["supports"]; resistances=lvls["resistances"]
+    r=resistances[0] if resistances else None
+    r_level=r["level"] if r else None
+    raw_atr=float(f15["atr10"])
+    valid_atr=math.isfinite(raw_atr) and raw_atr>0
+    atr=raw_atr if valid_atr else 1e-9
+
+    distance=(r_level-price)/atr if valid_atr and r_level is not None else None
+    location=clamp(100-50*abs(distance)) if distance is not None else 0.0
+    lower_supports=[x for x in supports if x["level"]<min(price,r_level or price)]
+    s=lower_supports[0] if lower_supports else None
+    s_level=s["level"] if s else None
+
+    resistance_quality=0 if not r else clamp(
+        30+8*len(r["sources"])
+        +(15 if any(x.startswith("4H ") for x in r["sources"]) else 0)
+        +(10 if any("recent high" in x for x in r["sources"]) else 0)
+    )
+    support_validity=0 if not s else clamp(
+        30+8*len(s["sources"])
+        +(15 if any(x.startswith("4H ") for x in s["sources"]) else 0)
+        +(10 if any("recent low" in x for x in s["sources"]) else 0)
+    )
+
+    trend=50
+    trend += 15 if f4["supertrend_direction"]=="down" else -15
+    trend += 15 if f1["trend"]=="bearish" else (-15 if f1["trend"]=="bullish" else 0)
+    trend += 10 if f15["trend"]=="bearish" else (-10 if f15["trend"]=="bullish" else 0)
+
+    momentum=50
+    momentum += 15 if f1["macd_hist_okx"]<0 else -15
+    momentum += 10 if f15["macd_hist_okx"]<0 else -10
+    momentum += 10 if 30<=f15["rsi6"]<=50 else (-10 if f15["rsi6"]>60 else -5 if f15["rsi6"]<20 else 0)
+
+    struct=50
+    struct += 20 if f15["structure"]["label"]=="LH_LL" else (-20 if f15["structure"]["label"]=="HH_HL" else 0)
+    struct += 15 if f1["structure"]["label"]=="LH_LL" else (-15 if f1["structure"]["label"]=="HH_HL" else 0)
+
+    volume_ratio=float(f15["volume_ratio_vs_20"])
+    volume=clamp(50+(volume_ratio-1)*35)
+    sell_score=clamp(
+        .25*resistance_quality+.20*(100-support_validity)+.20*clamp(trend)
+        +.15*clamp(momentum)+.10*volume+.10*clamp(struct)
+    )
+
+    near_resistance=r_level is not None and abs(price-r_level)<=0.60*atr
+    near_resistance_probe=r_level is not None and abs(price-r_level)<=0.80*atr
+    decisive_breakout=r_level is not None and price>r_level+0.20*atr
+    rejected=r_level is not None and price<=r_level
+    lh=f15["structure"]["label"]=="LH_LL"
+    confirm_st=f15["supertrend_direction"]=="down"
+    macd15_neg=f15["macd_hist_okx"]<0
+    confirm_vol=volume_ratio>=1.10
+    probe_vol=volume_ratio>=0.85
+    rsi_probe_ok=25<=float(f15["rsi6"])<=55
+    probe_signal_count=sum(bool(x) for x in (confirm_st,macd15_neg,probe_vol,rsi_probe_ok))
+
+    ext=float(f15.get("ma20_extension_atr",0))
+    chase_penalty=25 if ext<-2 else 0
+    hard_no_chase=not valid_atr or distance is None or distance>1.2 or ext<-3
+    entry_score=clamp(
+        .45*location+.20*resistance_quality+.15*clamp(trend)
+        +.10*clamp(momentum)+.10*volume-chase_penalty
+    )
+
+    short_zone=[round(r_level-0.6*atr,6),round(r_level+0.2*atr,6)] if r_level is not None and valid_atr else None
+    confirmed_zone=[round(r_level-0.6*atr,6),round(r_level,6)] if short_zone else None
+    short_stop=(r_level+0.75*atr) if r_level is not None and valid_atr else None
+    short_risk=(short_stop-price) if short_stop is not None else None
+    short_reward=(price-s_level) if s_level is not None else None
+    short_rr=short_reward/short_risk if short_risk is not None and short_risk>0 and short_reward is not None and short_reward>0 else None
+    rr_ok=short_rr is not None and short_rr>=1.5
+
+    limit_allowed=(
+        short_zone is not None and not decisive_breakout and ext>=-3
+        and resistance_quality>=38 and sell_score>=55 and probe_signal_count>=2
+    )
+    probe_candidate=(
+        limit_allowed and near_resistance_probe and location>=55
+        and resistance_quality>=38 and sell_score>=52 and entry_score>=52
+        and probe_signal_count>=1 and short_stop is not None and short_stop>price
+        and short_rr is not None and short_rr>=1.0
+    )
+
+    rejection_touch=(r_level is not None and r_level-0.6*atr<=f15.get("high",-math.inf)<=r_level+0.2*atr
+                     and f15["close"]<=r_level and f15["close"]<f15.get("open",-math.inf))
+    confirmed_candidate=(
+        location>=70 and not decisive_breakout and rejected and lh and rejection_touch
+        and confirm_st and confirm_vol and macd15_neg and rr_ok
+        and sell_score>=65 and entry_score>=70 and not hard_no_chase
+    )
+    add_candidate=(
+        confirmed_candidate and has_short_position is True
+        and f4["supertrend_direction"]=="down"
+        and f1["trend"]!="bullish" and f15["trend"]=="bearish"
+        and lh and confirm_st and confirm_vol and macd15_neg
+        and (f1["macd_hist_okx"]<0 or f1["trend"]=="bearish")
+        and sell_score>=72 and entry_score>=75 and ext>=-1.5
+        and location>=70 and short_rr is not None and short_rr>=2.0
+    )
+
+    if add_candidate:
+        entry_state="SHORT_ADD"
+    elif confirmed_candidate:
+        entry_state="SHORT_CONFIRMED"
+    elif probe_candidate:
+        entry_state="SHORT_PROBE"
+    else:
+        entry_state="WAIT"
+
+    return {
+        "sell_score":round(sell_score,1),
+        "entry_score":round(entry_score,1),
+        "location_score":round(location,1),
+        "resistance_quality":round(resistance_quality,1),
+        "support_validity":round(support_validity,1),
+        "entry_state":entry_state,
+        "resistance_anchor":r_level,
+        "resistance_anchor_sources":r["sources"] if r else [],
+        "resistance_distance_atr":round(distance,6) if distance is not None else None,
+        "short_order_zone":short_zone,
+        "confirmed_short_zone":confirmed_zone,
+        "short_order_allowed":limit_allowed,
+        "short_entry_price":round(price,6) if probe_candidate else None,
+        "short_stop":round(short_stop,6) if short_stop is not None else None,
+        "short_stop_distance":round(short_risk,6) if short_risk is not None else None,
+        "short_rr":round(short_rr,4) if short_rr is not None else None,
+        "short_risk_pct_of_entry":round(100*short_risk/price,4) if short_risk is not None and price>0 else None,
+        "short_position_size_class":"small",
+        "take_profit_target":s_level,
+        "has_short_position":has_short_position is True,
+        "hard_no_chase":hard_no_chase,
+        "ma20_extension_atr":round(ext,3),
+        "chase_penalty":chase_penalty,
+        "probe_signal_count":probe_signal_count,
+        "rules":{
+            "near_resistance":near_resistance,
+            "near_resistance_probe":near_resistance_probe,
+            "decisive_breakout":decisive_breakout,
+            "rejected_resistance":rejected,
+            "15m_LH_LL":lh,
+            "15m_supertrend_down":confirm_st,
+            "15m_macd_negative":macd15_neg,
+            "15m_rsi_short_probe_ok":rsi_probe_ok,
+            "volume_ratio_ge_probe":probe_vol,
+            "volume_ratio_ge_confirm":confirm_vol,
+            "rejection_touch":rejection_touch,
+            "short_probe_candidate":probe_candidate,
+            "short_confirmed_candidate":confirmed_candidate,
+            "short_add_candidate":add_candidate
+        },
+        "thresholds":{
+            "short_probe_sell_score_min":52,
+            "short_probe_entry_score_min":52,
+            "short_probe_location_min":55,
+            "short_confirmed_sell_score_min":65,
+            "short_confirmed_entry_score_min":70,
+            "short_add_sell_score_min":72,
+            "short_add_entry_score_min":75,
+            "short_probe_near_resistance_atr":0.80,
+            "short_stop_above_resistance_atr":0.75,
+            "short_probe_rr_min":1.0,
+            "short_confirmed_rr_min":1.5,
+            "short_add_rr_min":2.0
+        }
+    }
+
+
+def strategy_state(price, frames, lvls, previous=None, has_position=False, has_short_position=False):
     f15=frames["15m"]; f1=frames["1H"]; f4=frames["4H"]
     supports=lvls["supports"]; resistances=lvls["resistances"]
     s1=supports[0]["level"] if supports else None
@@ -404,6 +575,7 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False):
     r1=resistances[0]["level"] if resistances else None
     r2=resistances[1]["level"] if len(resistances)>1 else None
     entry=low_risk_entry(price,frames,lvls,previous,has_position)
+    short_entry=low_risk_short(price,frames,lvls,has_short_position)
 
     score=0
     score += 2 if f4["supertrend_direction"]=="up" else -2
@@ -414,7 +586,14 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False):
     bias="bullish" if score>=4 else ("bearish" if score<=-4 else "mixed")
 
     entry_state=entry["entry_state"]
-    if entry_state=="ADD":
+    short_state=short_entry["entry_state"]
+    if short_state=="SHORT_ADD":
+        state="空头加仓候选"
+    elif short_state=="SHORT_CONFIRMED":
+        state="正式做空候选"
+    elif short_state=="SHORT_PROBE":
+        state="空头试仓候选"
+    elif entry_state=="ADD":
         state="加仓候选"
     elif entry_state=="CONFIRMED":
         state="正式买入候选"
@@ -442,6 +621,7 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False):
         "limit_order_zone":entry["limit_order_zone"],
         "confirmed_entry_zone":entry["confirmed_entry_zone"],
         "low_risk_entry":entry,
+        "low_risk_short":short_entry,
         "triggers":{
             "probe":{
                 "enabled":entry_state=="PROBE",
@@ -464,6 +644,23 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False):
                 "enabled":entry_state in ("CONFIRMED","ADD"),
                 "condition":"兼容旧字段：正式买入或加仓候选；试仓请读取 triggers.probe"
             },
+            "short_probe":{
+                "enabled":short_state=="SHORT_PROBE",
+                "condition":"仅在强阻力附近反弹失败时小仓试空；必须同步设置short_stop，禁止下跌后追空",
+                "short_order_allowed":short_entry["short_order_allowed"],
+                "position_size_class":"small"
+            },
+            "short_confirmed":{
+                "enabled":short_state in ("SHORT_CONFIRMED","SHORT_ADD"),
+                "condition":"阻力附近形成LH/LL + SuperTrend向下 + MACD负 + 放量确认",
+                "trigger_below":r1,
+                "take_profit_target":short_entry["take_profit_target"]
+            },
+            "short_add":{
+                "enabled":short_state=="SHORT_ADD",
+                "condition":"仅针对已有空仓：空头趋势延续且未明显远离MA20",
+                "requires_existing_short_position":True
+            },
             "reduce_risk":{
                 "condition":"15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
                 "trigger_below":s1,
@@ -476,7 +673,8 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False):
             "15m_"+f15["trend"],
             "15m_structure_"+f15["structure"]["label"],
             "1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG",
-            "ENTRY_"+entry_state
+            "ENTRY_"+entry_state,
+            "SHORT_ENTRY_"+short_state
         ]
     }
 
@@ -571,12 +769,14 @@ def main():
     for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
     lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":7,"instrument":INST_ID,
+        "schema_version":8,"instrument":INST_ID,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
-        "strategy":strategy_state(float(t["last"]),frames,lvls,previous,os.getenv("HAS_POSITION","false").lower()=="true"),
-        "notes":["low-risk entry v5: PROBE uses small size + mandatory tight stop; CONFIRMED expands only after structure confirmation; ADD requires confirmed continuation","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
+        "strategy":strategy_state(float(t["last"]),frames,lvls,previous,
+            os.getenv("HAS_POSITION","false").lower()=="true",
+            os.getenv("HAS_SHORT_POSITION","false").lower()=="true"),
+        "notes":["dual-direction v1: long and short candidates are independent; SHORT requires resistance rejection and never derives from long WAIT alone","low-risk entry v5: PROBE uses small size + mandatory tight stop; CONFIRMED expands only after structure confirmation; ADD requires confirmed continuation","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
