@@ -4,7 +4,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
 
-INST_ID="OPENAI-USDT-SWAP"
+INST_ID="BTC-USDT-SWAP"
 BASE="https://www.okx.com"
 OUT=Path("output"); OUT.mkdir(exist_ok=True)
 TFS={"15m":("15m",240,96),"1H":("1H",240,72),"4H":("4H",240,42)}
