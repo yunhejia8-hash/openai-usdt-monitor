@@ -22,7 +22,19 @@ def sample(price=164.55, volume=1.5, has_position=False, previous=None):
             "strategy":monitor.strategy_state(price,frames,levels,previous,has_position)}
 
 
-def entry(snap):
+def short_sample(price=164.45, volume=1.5, has_short_position=False):
+    frame={"asof_ts":1800000,"open":164.60,"low":164.30,"high":164.55,
+           "close":164.45,"atr10":0.318,"trend":"bearish","supertrend_direction":"down",
+           "supertrend_10_3":165.0,"macd_hist_okx":-0.1,"rsi6":40,
+           "volume_ratio_vs_20":volume,"ma20_extension_atr":-1.0,
+           "structure":{"label":"LH_LL"}}
+    frames={tf:copy.deepcopy(frame) for tf in ("15m","1H","4H")}
+    levels={"supports":[{"level":161.5,"sources":["1H recent low"],"strength":1}],
+            "resistances":[{"level":164.49,"sources":["4H recent high","1H MA20","15m MA10","15m SuperTrend"],"strength":4},
+                           {"level":165.6,"sources":["4H SuperTrend"],"strength":1}]}
+    return {"ticker":{"last":price},"frames":frames,"levels":levels,
+            "strategy":monitor.strategy_state(price,frames,levels,None,False,has_short_position)}
+
     return snap["strategy"]["low_risk_entry"]
 
 
@@ -157,11 +169,43 @@ class EntryTests(unittest.TestCase):
                 patch.dict("os.environ",{"HAS_POSITION":"true"}):
             monitor.main()
             written=json.loads((Path(folder)/"latest.json").read_text(encoding="utf-8"))
-            self.assertEqual(written["schema_version"],7)
+            self.assertEqual(written["schema_version"],8)
             self.assertEqual(entry(written)["entry_state"],"ADD")
             self.assertIn("limit_order_zone",(Path(folder)/"index.html").read_text(encoding="utf-8"))
             monitor.main()
             self.assertFalse(monitor.load_previous_snapshot()["change"]["material"])
+
+
+    def test_short_probe_has_stop_and_rr(self):
+        s=short_sample(volume=0.9)
+        e=s["strategy"]["low_risk_short"]
+        self.assertEqual(e["entry_state"],"SHORT_PROBE")
+        self.assertGreater(e["short_stop"],s["ticker"]["last"])
+        self.assertGreaterEqual(e["short_rr"],1.0)
+        self.assertEqual(e["short_position_size_class"],"small")
+
+    def test_short_wait_does_not_follow_long_wait_automatically(self):
+        s=sample()
+        e=s["strategy"]["low_risk_short"]
+        self.assertEqual(e["entry_state"],"WAIT")
+        self.assertFalse(s["strategy"]["triggers"]["short_probe"]["enabled"])
+
+    def test_short_confirmed_and_add_need_bearish_confirmation(self):
+        s=short_sample()
+        self.assertEqual(s["strategy"]["low_risk_short"]["entry_state"],"SHORT_CONFIRMED")
+        s=short_sample(has_short_position=True)
+        self.assertEqual(s["strategy"]["low_risk_short"]["entry_state"],"SHORT_ADD")
+        s=short_sample()
+        s["frames"]["15m"]["supertrend_direction"]="up"
+        e=monitor.low_risk_short(s["ticker"]["last"],s["frames"],s["levels"])
+        self.assertNotIn(e["entry_state"],("SHORT_CONFIRMED","SHORT_ADD"))
+
+    def test_short_no_chase_after_drop(self):
+        s=short_sample()
+        s["frames"]["15m"]["ma20_extension_atr"]=-3.2
+        e=monitor.low_risk_short(s["ticker"]["last"],s["frames"],s["levels"])
+        self.assertEqual(e["entry_state"],"WAIT")
+        self.assertTrue(e["hard_no_chase"])
 
     def test_metrics_preserve_indicators_and_closed_candle_evidence(self):
         candles=[{"ts":i*900000,"open":160+i*.01,"low":159.9+i*.01,
