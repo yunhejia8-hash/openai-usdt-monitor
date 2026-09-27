@@ -220,5 +220,37 @@ class EntryTests(unittest.TestCase):
                          "atr10","supertrend_direction","structure","volume_ratio_vs_20"}<=m.keys())
 
 
+    def test_performance_tracking_records_signal_and_checkpoints(self):
+        s=sample(volume=0.9)
+        for f in s["frames"].values():
+            for key in ("ma10","ma20","boll_upper","boll_lower","recent_high","recent_low"):
+                f[key]=164.49
+        snap={
+            "instrument":monitor.INST_ID,
+            "generated_at_utc":"2026-09-27T00:00:00+00:00",
+            "generated_at_sgt":"2026-09-27T08:00:00+08:00",
+            "ticker":{"last":164.55},
+            "summary":{"regime":"mixed","timeframe_trends":{"15m":"bullish","1H":"neutral","4H":"neutral"}},
+            "frames":s["frames"],
+            "strategy":s["strategy"]
+        }
+        with tempfile.TemporaryDirectory() as folder, patch.object(monitor,"SIGNAL_HISTORY_PATH",Path(folder)/"signal_history.jsonl"), \
+                patch.object(monitor,"PERFORMANCE_PATH",Path(folder)/"performance.json"):
+            first=monitor.update_performance_tracking(snap)
+            self.assertEqual(first["decision_samples"],1)
+            self.assertEqual(first["actionable_samples"],1)
+            snap2=copy.deepcopy(snap)
+            snap2["generated_at_utc"]="2026-09-27T01:00:00+00:00"
+            snap2["generated_at_sgt"]="2026-09-27T09:00:00+08:00"
+            snap2["ticker"]["last"]=165.0
+            snap2["frames"]["15m"]["high"]=165.1
+            snap2["frames"]["15m"]["low"]=164.4
+            monitor.update_performance_tracking(snap2)
+            rows=[json.loads(x) for x in (Path(folder)/"signal_history.jsonl").read_text(encoding="utf-8").splitlines()]
+            self.assertGreater(rows[0]["mfe_pct"],0)
+            self.assertGreater(rows[0]["mae_pct"],0)
+            self.assertIn("1",rows[0]["checkpoint_returns_pct"])
+
+
 if __name__=="__main__":
     unittest.main()
