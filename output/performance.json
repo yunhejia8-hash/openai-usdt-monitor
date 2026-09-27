@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "updated_at_utc": "2026-09-27T04:54:31.560258+00:00",
+  "instrument": "OPENAI-USDT-SWAP",
+  "decision_samples": 3,
+  "actionable_samples": 2,
+  "horizon_stats": {
+    "0.5": {
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
+    },
+    "1": {
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
+    },
+    "4": {
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
+    },
+    "12": {
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
+    },
+    "24": {
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
+    }
+  },
+  "notes": [
+    "Performance tracking is observational only and never changes live strategy thresholds.",
+    "MFE/MAE are sampled estimates until candle-level backfill is added.",
+    "Do not optimize thresholds from small samples; validate candidate changes out of sample."
+  ]
+}
