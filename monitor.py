@@ -784,7 +784,7 @@ def _read_signal_history():
 
 def _write_signal_history(rows):
     SIGNAL_HISTORY_PATH.write_text(
-        "".join(json.dumps(x,ensure_ascii=False,separators=(",",":"))+"\\n" for x in rows),
+        "".join(json.dumps(x,ensure_ascii=False,separators=(",",":"))+"\n" for x in rows),
         encoding="utf-8"
     )
 
