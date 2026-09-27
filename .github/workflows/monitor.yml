@@ -2,10 +2,10 @@ name: Update OPENAIUSDT market snapshot
 
 on:
   schedule:
-    # Run every 30 minutes, offset from the top/bottom of the hour to reduce
-    # GitHub Actions schedule congestion. Scheduled runs are best-effort and
-    # can still be delayed by GitHub, but :13/:43 is less congestion-prone.
-    - cron: "13,43 * * * *"
+    # GitHub scheduled workflows are best-effort and can be delayed/dropped.
+    # Ask the scheduler every 15 minutes to reduce the chance of a long gap;
+    # the freshness gate below keeps actual snapshots near the 30-minute target.
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
   push:
     paths:
@@ -33,10 +33,11 @@ jobs:
           fetch-depth: 0
 
       - name: Check snapshot freshness
+        id: freshness
         shell: bash
         run: |
           python - <<'PY'
-          import json
+          import json, os
           from datetime import datetime, timezone
           from pathlib import Path
           p = Path("output/latest.json")
@@ -52,25 +53,34 @@ jobs:
               age = (datetime.now(timezone.utc) - datetime.fromisoformat(ts.replace("Z","+00:00"))).total_seconds()/60
               print(f"PREVIOUS_SNAPSHOT_AGE_MINUTES={age:.1f}")
               print("SNAPSHOT_HEALTH=stale" if age > 60 else "SNAPSHOT_HEALTH=fresh")
+              # Scheduled runs are redundant probes. Skip expensive work when
+              # the last snapshot is still younger than 25 minutes.
+              skip = os.environ.get("GITHUB_EVENT_NAME") == "schedule" and age < 25
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+                  out.write(f"skip={'true' if skip else 'false'}\n")
           except Exception as e:
               print(f"SNAPSHOT_HEALTH=invalid ({e})")
           PY
 
       - name: Set up Python
+        if: steps.freshness.outputs.skip != 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: "pip"
 
       - name: Install dependencies
+        if: steps.freshness.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
       - name: Validate strategy
+        if: steps.freshness.outputs.skip != 'true'
         run: |
           python -m unittest -v
           python -m py_compile monitor.py test_monitor.py
 
       - name: Fetch OKX market data
+        if: steps.freshness.outputs.skip != 'true'
         env:
           HAS_POSITION: ${{ vars.HAS_POSITION || 'false' }}
         shell: bash
@@ -89,6 +99,7 @@ jobs:
           done
 
       - name: Write workflow health
+        if: steps.freshness.outputs.skip != 'true'
         shell: bash
         env:
           RUN_EVENT: ${{ github.event_name }}
@@ -114,6 +125,7 @@ jobs:
           PY
 
       - name: Commit snapshot
+        if: steps.freshness.outputs.skip != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -148,4 +160,7 @@ jobs:
             sleep $((attempt * 5))
           done
 
-# Manual refresh trigger: 2026-09-26-0903
+# Reliability hardening:
+# - 15-minute redundant schedule probes
+# - skip scheduled work when snapshot age <25 minutes
+# - workflow_dispatch remains available for explicit recovery
