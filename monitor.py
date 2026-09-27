@@ -904,7 +904,9 @@ def main():
             os.getenv("HAS_SHORT_POSITION","false").lower()=="true"),
         "notes":["dual-direction v1: long and short candidates are independent; SHORT requires resistance rejection and never derives from long WAIT alone","low-risk entry v5: PROBE uses small size + mandatory tight stop; CONFIRMED expands only after structure confirmation; ADD requires confirmed continuation","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
-    snap["change"]=detect_material_change(previous,snap)\n    snap["performance_tracking"]=update_performance_tracking(snap)\n    (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
+    snap["change"]=detect_material_change(previous,snap)
+    snap["performance_tracking"]=update_performance_tracking(snap)
+    (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
     rows="".join(f"<tr><td>{tf}</td><td>{m['close']:.4f}</td><td>{m['trend']}</td><td>{m['structure']['label']}</td><td>{m['rsi6']:.1f}</td><td>{m['supertrend_10_3']:.4f}</td></tr>" for tf,m in frames.items())
     html=f"""<!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
     <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>{t['last']}</b> · Regime: <b>{snap['summary']['regime']}</b> · Strategy: <b>{snap['strategy']['state']}</b></p>
