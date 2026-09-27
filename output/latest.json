@@ -1,21 +1,21 @@
 {
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-27T04:54:31.560258+00:00",
-  "generated_at_sgt": "2026-09-27T12:54:31.560422+08:00",
+  "generated_at_utc": "2026-09-27T04:55:16.733300+00:00",
+  "generated_at_sgt": "2026-09-27T12:55:16.733439+08:00",
   "ticker": {
     "last": 159.81,
     "lastSz": 0.17,
-    "askPx": 159.91,
-    "askSz": 0.29,
-    "bidPx": 159.81,
-    "bidSz": 0.07,
+    "askPx": 159.88,
+    "askSz": 1.71,
+    "bidPx": 159.79,
+    "bidSz": 0.11,
     "open24h": 161.47,
     "high24h": 162.86,
     "low24h": 159.18,
     "vol24h": 1698.11,
     "volCcy24h": 1698.11,
-    "ts": 1790484870266
+    "ts": 1790484915360
   },
   "summary": {
     "regime": "bearish_alignment",
@@ -453,29 +453,18 @@
     "MACD histogram = 2*(DIFF-DEA)"
   ],
   "change": {
-    "material": true,
-    "reasons": [
-      "entry_score_crossed_58:74.1->37.0",
-      "entry_score_crossed_68:74.1->37.0",
-      "entry_score_crossed_70:74.1->37.0",
-      "limit_order_zone_changed:[160.762944, 161.091569]->[159.351433, 159.588102]",
-      "confirmed_entry_zone_changed:[160.8451, 161.091569]->[159.4106, 159.588102]",
-      "hard_no_chase:False->True",
-      "support_shift:160.565->159.4106",
-      "resistance_shift:161.3676->160.4182",
-      "invalidation_shift:160.565->156.19",
-      "price_crossed_support_down:160.565"
-    ],
+    "material": false,
+    "reasons": [],
     "level_tolerance": 0.63924,
-    "previous_generated_at": "2026-09-27T08:34:56.104153+08:00",
-    "previous_price": 160.98,
+    "previous_generated_at": "2026-09-27T12:54:31.560422+08:00",
+    "previous_price": 159.81,
     "current_price": 159.81
   },
   "performance_tracking": {
     "schema_version": 1,
-    "updated_at_utc": "2026-09-27T04:54:31.560258+00:00",
+    "updated_at_utc": "2026-09-27T04:55:16.733300+00:00",
     "instrument": "OPENAI-USDT-SWAP",
-    "decision_samples": 3,
+    "decision_samples": 4,
     "actionable_samples": 2,
     "horizon_stats": {
       "0.5": {
