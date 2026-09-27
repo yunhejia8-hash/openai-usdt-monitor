@@ -28,6 +28,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Check snapshot freshness
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          p = Path("output/latest.json")
+          if not p.exists():
+              print("SNAPSHOT_HEALTH=missing")
+              raise SystemExit(0)
+          try:
+              d = json.loads(p.read_text(encoding="utf-8"))
+              ts = d.get("generated_at_utc")
+              if not ts:
+                  print("SNAPSHOT_HEALTH=missing_timestamp")
+                  raise SystemExit(0)
+              age = (datetime.now(timezone.utc) - datetime.fromisoformat(ts.replace("Z","+00:00"))).total_seconds()/60
+              print(f"PREVIOUS_SNAPSHOT_AGE_MINUTES={age:.1f}")
+              print("SNAPSHOT_HEALTH=stale" if age > 60 else "SNAPSHOT_HEALTH=fresh")
+          except Exception as e:
+              print(f"SNAPSHOT_HEALTH=invalid ({e})")
+          PY
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -61,16 +88,64 @@ jobs:
             sleep 20
           done
 
-      - name: Commit snapshot
+      - name: Write workflow health
+        shell: bash
+        env:
+          RUN_EVENT: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_SHA: ${{ github.sha }}
         run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          from pathlib import Path
+          health = {
+              "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+              "event": os.environ["RUN_EVENT"],
+              "run_id": os.environ["RUN_ID"],
+              "run_attempt": os.environ["RUN_ATTEMPT"],
+              "trigger_sha": os.environ["RUN_SHA"],
+              "snapshot_generated": True
+          }
+          Path("output/workflow_health.json").write_text(
+              json.dumps(health, indent=2), encoding="utf-8"
+          )
+          PY
+
+      - name: Commit snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name "openai-usdt-monitor"
           git config user.email "actions@users.noreply.github.com"
-          git add output/latest.json output/index.html output/signal_history.jsonl output/performance.json
+          git add output/latest.json output/index.html output/signal_history.jsonl output/performance.json output/workflow_health.json
           if git diff --cached --quiet; then
             echo "No snapshot changes."
-          else
-            git commit -m "Update market snapshot"
-            git push
+            exit 0
           fi
+
+          git commit -m "Update market snapshot"
+
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Snapshot push succeeded on attempt $attempt."
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Snapshot push failed after 3 attempts."
+              exit 1
+            fi
+
+            echo "::warning::Push attempt $attempt failed; refreshing origin/main before retry."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "::error::Rebase conflict while recovering from concurrent main update."
+              git rebase --abort || true
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
 
 # Manual refresh trigger: 2026-09-26-0903
