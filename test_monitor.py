@@ -166,6 +166,8 @@ class EntryTests(unittest.TestCase):
             for key in ("ma10","ma20","boll_upper","boll_lower","recent_high","recent_low"):
                 f[key]=164.49
         with tempfile.TemporaryDirectory() as folder, patch.object(monitor,"OUT",Path(folder)), \
+                patch.object(monitor,"SIGNAL_HISTORY_PATH",Path(folder)/"signal_history.jsonl"), \
+                patch.object(monitor,"PERFORMANCE_PATH",Path(folder)/"performance.json"), \
                 patch.object(monitor,"ticker",return_value=s["ticker"]), \
                 patch.object(monitor,"candles",return_value=[]), \
                 patch.object(monitor,"metrics",side_effect=list(s["frames"].values())*2), \
