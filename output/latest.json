@@ -1,21 +1,21 @@
 {
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-27T05:39:40.099529+00:00",
-  "generated_at_sgt": "2026-09-27T13:39:40.099689+08:00",
+  "generated_at_utc": "2026-09-27T05:42:43.259209+00:00",
+  "generated_at_sgt": "2026-09-27T13:42:43.259350+08:00",
   "ticker": {
     "last": 159.86,
-    "lastSz": 0.01,
+    "lastSz": 0.2,
     "askPx": 159.86,
-    "askSz": 1.7,
-    "bidPx": 159.75,
-    "bidSz": 1.63,
+    "askSz": 1.5,
+    "bidPx": 159.76,
+    "bidSz": 1.62,
     "open24h": 161.29,
     "high24h": 162.86,
     "low24h": 159.18,
-    "vol24h": 1697.37,
-    "volCcy24h": 1697.37,
-    "ts": 1790487579079
+    "vol24h": 1697.56,
+    "volCcy24h": 1697.56,
+    "ts": 1790487761869
   },
   "summary": {
     "regime": "bearish_alignment",
@@ -448,23 +448,19 @@
     "MACD histogram = 2*(DIFF-DEA)"
   ],
   "change": {
-    "material": true,
-    "reasons": [
-      "state:观望->空头试仓候选",
-      "limit_order_zone_changed:[159.351433, 159.588102]->[159.190257, 159.384028]",
-      "confirmed_entry_zone_changed:[159.4106, 159.588102]->[159.2387, 159.384028]"
-    ],
+    "material": false,
+    "reasons": [],
     "level_tolerance": 0.63944,
-    "previous_generated_at": "2026-09-27T12:55:16.733439+08:00",
-    "previous_price": 159.81,
+    "previous_generated_at": "2026-09-27T13:39:40.099689+08:00",
+    "previous_price": 159.86,
     "current_price": 159.86
   },
   "performance_tracking": {
     "schema_version": 1,
-    "updated_at_utc": "2026-09-27T05:39:40.099529+00:00",
+    "updated_at_utc": "2026-09-27T05:42:43.259209+00:00",
     "instrument": "OPENAI-USDT-SWAP",
-    "decision_samples": 3,
-    "actionable_samples": 1,
+    "decision_samples": 4,
+    "actionable_samples": 2,
     "horizon_stats": {
       "0.5": {
         "samples": 0,
