@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-09-27T09:37:21.555597+00:00",
+  "updated_at_utc": "2026-09-27T14:50:21.006471+00:00",
   "instrument": "OPENAI-USDT-SWAP",
-  "decision_samples": 5,
+  "decision_samples": 6,
   "actionable_samples": 2,
   "horizon_stats": {
     "0.5": {
@@ -16,9 +16,9 @@
       "avg_return_pct": -0.475416
     },
     "4": {
-      "samples": 0,
-      "win_rate": null,
-      "avg_return_pct": null
+      "samples": 2,
+      "win_rate": 0.0,
+      "avg_return_pct": -0.325285
     },
     "12": {
       "samples": 0,
