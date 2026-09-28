@@ -1,8 +1,16 @@
 {
-  "updated_at_utc": "2026-09-28T02:53:14.659587+00:00",
+  "schema_version": 2,
+  "updated_at_utc": "2026-09-28T02:53:41.017024+00:00",
   "event": "push",
-  "run_id": "36371516500",
+  "run_id": "36371532433",
   "run_attempt": "1",
-  "trigger_sha": "4ceedceed80d663dbb1426b5f195a20249516cbf",
-  "snapshot_generated": true
+  "trigger_sha": "b0edfe266b9f4fd323364f130ee8e76b5dfa08f6",
+  "snapshot_generated": true,
+  "snapshot_generated_at_utc": "2026-09-28T02:53:40.958332+00:00",
+  "snapshot_age_minutes_at_health_write": 0.001,
+  "previous_snapshot_age_minutes": 0.364,
+  "previous_snapshot_health": "fresh",
+  "freshness_sla_minutes": 60,
+  "target_snapshot_interval_minutes": 30,
+  "health_status": "healthy"
 }

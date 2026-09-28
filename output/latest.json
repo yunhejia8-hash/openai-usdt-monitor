@@ -1,11 +1,11 @@
 {
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-28T02:53:14.596893+00:00",
-  "generated_at_sgt": "2026-09-28T10:53:14.597065+08:00",
+  "generated_at_utc": "2026-09-28T02:53:40.958332+00:00",
+  "generated_at_sgt": "2026-09-28T10:53:40.958515+08:00",
   "ticker": {
-    "last": 161.3,
-    "lastSz": 0.06,
+    "last": 161.28,
+    "lastSz": 0.01,
     "askPx": 161.37,
     "askSz": 0.01,
     "bidPx": 161.27,
@@ -13,9 +13,9 @@
     "open24h": 160.31,
     "high24h": 162.48,
     "low24h": 159.18,
-    "vol24h": 1427.04,
-    "volCcy24h": 1427.04,
-    "ts": 1790563993269
+    "vol24h": 1427.05,
+    "volCcy24h": 1427.05,
+    "ts": 1790564019272
   },
   "summary": {
     "regime": "mixed",
@@ -240,8 +240,8 @@
     ],
     "low_risk_entry": {
       "buy_score": 54.6,
-      "entry_score": 77.1,
-      "location_score": 91.1,
+      "entry_score": 78.8,
+      "location_score": 94.9,
       "support_quality": 100.0,
       "resistance_validity": 100.0,
       "entry_state": "WAIT",
@@ -261,8 +261,8 @@
         "4H MA20",
         "1H BOLL upper"
       ],
-      "support_distance_atr": 0.178628,
-      "support_distance_score": 91.1,
+      "support_distance_atr": 0.102616,
+      "support_distance_score": 94.9,
       "limit_order_zone": [
         161.200377,
         161.41087
@@ -275,12 +275,12 @@
       "limit_order_note": "PROBE仅允许小仓试错，必须同步设置probe_stop；未形成CONFIRMED前不得按主仓处理",
       "probe_entry_price": null,
       "probe_stop": 161.055663,
-      "probe_stop_distance": 0.244337,
-      "probe_rr": 0.2321,
-      "probe_risk_pct_of_entry": 0.1515,
+      "probe_stop_distance": 0.224337,
+      "probe_rr": 0.3419,
+      "probe_risk_pct_of_entry": 0.1391,
       "probe_position_size_class": "small",
       "invalidation_level": 160.0798,
-      "risk_reward_ratio": 0.0465,
+      "risk_reward_ratio": 0.0639,
       "risk_reward_target": 161.3567,
       "has_position": false,
       "breakout_level": 159.9454,
@@ -336,8 +336,8 @@
     },
     "low_risk_short": {
       "sell_score": 62.0,
-      "entry_score": 77.7,
-      "location_score": 89.2,
+      "entry_score": 76.0,
+      "location_score": 85.4,
       "resistance_quality": 100.0,
       "support_validity": 38.0,
       "entry_state": "SHORT_PROBE",
@@ -355,7 +355,7 @@
         "15m BOLL upper",
         "1H BOLL upper"
       ],
-      "resistance_distance_atr": 0.215494,
+      "resistance_distance_atr": 0.291506,
       "short_order_zone": [
         161.19883,
         161.409323
@@ -365,11 +365,11 @@
         161.3567
       ],
       "short_order_allowed": true,
-      "short_entry_price": 161.3,
+      "short_entry_price": 161.28,
       "short_stop": 161.554037,
-      "short_stop_distance": 0.254037,
-      "short_rr": 4.8032,
-      "short_risk_pct_of_entry": 0.1575,
+      "short_stop_distance": 0.274037,
+      "short_rr": 4.3797,
+      "short_risk_pct_of_entry": 0.1699,
       "short_position_size_class": "small",
       "take_profit_target": 160.0798,
       "has_short_position": false,
@@ -474,21 +474,21 @@
   "change": {
     "material": false,
     "reasons": [],
-    "level_tolerance": 0.6452,
-    "previous_generated_at": "2026-09-28T10:52:30.779739+08:00",
+    "level_tolerance": 0.64512,
+    "previous_generated_at": "2026-09-28T10:53:14.597065+08:00",
     "previous_price": 161.3,
-    "current_price": 161.3
+    "current_price": 161.28
   },
   "performance_tracking": {
     "schema_version": 2,
-    "updated_at_utc": "2026-09-28T02:53:14.596893+00:00",
+    "updated_at_utc": "2026-09-28T02:53:40.958332+00:00",
     "instrument": "OPENAI-USDT-SWAP",
-    "decision_samples_raw": 12,
-    "decision_samples": 12,
-    "actionable_observations_raw": 5,
-    "actionable_samples": 5,
+    "decision_samples_raw": 13,
+    "decision_samples": 13,
+    "actionable_observations_raw": 6,
+    "actionable_samples": 6,
     "independent_signal_lifecycles": 3,
-    "duplicate_actionable_observations": 2,
+    "duplicate_actionable_observations": 3,
     "horizon_stats": {
       "0.5": {
         "samples": 2,

@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
-  "updated_at_utc": "2026-09-28T02:53:14.596893+00:00",
+  "updated_at_utc": "2026-09-28T02:53:40.958332+00:00",
   "instrument": "OPENAI-USDT-SWAP",
-  "decision_samples_raw": 12,
-  "decision_samples": 12,
-  "actionable_observations_raw": 5,
-  "actionable_samples": 5,
+  "decision_samples_raw": 13,
+  "decision_samples": 13,
+  "actionable_observations_raw": 6,
+  "actionable_samples": 6,
   "independent_signal_lifecycles": 3,
-  "duplicate_actionable_observations": 2,
+  "duplicate_actionable_observations": 3,
   "horizon_stats": {
     "0.5": {
       "samples": 2,
