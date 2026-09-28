@@ -38,6 +38,8 @@ class WorkflowHealthTests(unittest.TestCase):
         self.assertTrue(watchdog.should_dispatch(55, 0))
         self.assertFalse(watchdog.should_dispatch(49, 0))
         self.assertFalse(watchdog.should_dispatch(90, 1))
+        self.assertTrue(watchdog.should_dispatch(1, 0, force=True))
+        self.assertFalse(watchdog.should_dispatch(1, 1, force=True))
 
 
 if __name__ == "__main__":
