@@ -33,4 +33,5 @@ jobs:
       - name: Evaluate freshness and recover if needed
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WATCHDOG_FORCE: ${{ github.event_name == 'push' && 'true' || 'false' }}
         run: python watchdog.py
