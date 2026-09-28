@@ -3,6 +3,7 @@ name: Recover stale OPENAIUSDT snapshot
 on:
   schedule:
     # Independent recovery probe, offset from the primary monitor schedule.
+    # Push-triggered runs are maintenance self-tests and force the recovery path.
     - cron: "2,17,32,47 * * * *"
   workflow_dispatch:
   push:
