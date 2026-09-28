@@ -1,15 +1,16 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-09-28T16:09:59.384305+00:00",
+  "updated_at_utc": "2026-09-28T16:20:59.374011+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 15,
-  "decision_samples": 15,
+  "decision_samples_raw": 16,
+  "decision_samples": 16,
   "actionable_observations_raw": 0,
   "actionable_samples": 0,
   "independent_signal_lifecycles": 0,
   "duplicate_actionable_observations": 0,
+  "historical_evaluations_appended": 3,
   "horizon_stats": {
     "0.5": {
       "samples": 0,
@@ -40,6 +41,8 @@
   "notes": [
     "Official statistics include only observations at/after tracking_start_utc; older ledger rows are preserved for audit only.",
     "signal_history.jsonl is append-only: new observations append one line and never rewrite prior sample rows.",
+    "signal_evaluations.jsonl stores append-only historical path evaluations separately from raw observations.",
+    "SETUP and SHORT_SETUP are non-actionable near-qualified states and never create trade lifecycles.",
     "Performance tracking is observational only and never changes live strategy thresholds.",
     "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
     "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
