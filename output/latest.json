@@ -1,8 +1,8 @@
 {
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-28T06:44:24.835012+00:00",
-  "generated_at_sgt": "2026-09-28T14:44:24.835170+08:00",
+  "generated_at_utc": "2026-09-28T06:45:11.116883+00:00",
+  "generated_at_sgt": "2026-09-28T14:45:11.117071+08:00",
   "ticker": {
     "last": 160.63,
     "lastSz": 0.01,
@@ -13,9 +13,9 @@
     "open24h": 159.9,
     "high24h": 162.48,
     "low24h": 159.76,
-    "vol24h": 1401.14,
-    "volCcy24h": 1401.14,
-    "ts": 1790577863073
+    "vol24h": 1401.1,
+    "volCcy24h": 1401.1,
+    "ts": 1790577909069
   },
   "summary": {
     "regime": "mixed",
@@ -27,30 +27,30 @@
   },
   "frames": {
     "15m": {
-      "asof_ts": 1790576100000,
-      "close": 160.77,
-      "open": 160.85,
-      "low": 160.67,
-      "high": 160.85,
-      "ma5": 160.838,
-      "ma10": 161.021,
-      "ma20": 161.101,
-      "boll_mid": 161.101,
-      "boll_upper": 161.705612,
-      "boll_lower": 160.496388,
-      "rsi6": 37.769,
-      "rsi12": 41.211,
-      "rsi24": 45.078,
-      "macd_diff": -0.109689,
-      "macd_dea": -0.067567,
-      "macd_hist_okx": -0.084245,
-      "atr10": 0.239616,
-      "ma20_extension_atr": -1.381,
-      "supertrend_10_3": 161.478847,
+      "asof_ts": 1790577000000,
+      "close": 160.63,
+      "open": 160.66,
+      "low": 160.42,
+      "high": 160.66,
+      "ma5": 160.732,
+      "ma10": 160.978,
+      "ma20": 161.0575,
+      "boll_mid": 161.0575,
+      "boll_upper": 161.666199,
+      "boll_lower": 160.448801,
+      "rsi6": 31.982,
+      "rsi12": 38.078,
+      "rsi24": 43.234,
+      "macd_diff": -0.128891,
+      "macd_dea": -0.079832,
+      "macd_hist_okx": -0.098119,
+      "atr10": 0.250654,
+      "ma20_extension_atr": -1.706,
+      "supertrend_10_3": 161.291963,
       "supertrend_direction": "down",
-      "volume_quote": 421.267,
-      "volume_20_avg": 3179.132,
-      "volume_ratio_vs_20": 0.133,
+      "volume_quote": 1513.578,
+      "volume_20_avg": 3254.811,
+      "volume_ratio_vs_20": 0.465,
       "recent_high": 162.48,
       "recent_low": 159.76,
       "structure": {
@@ -174,7 +174,7 @@
     ],
     "resistances": [
       {
-        "level": 160.8858,
+        "level": 160.9198,
         "sources": [
           "1H BOLL lower",
           "15m BOLL lower",
@@ -182,20 +182,20 @@
           "15m MA10",
           "1H MA20",
           "15m MA20",
-          "1H MA10"
+          "1H MA10",
+          "15m SuperTrend"
         ],
-        "strength": 7
+        "strength": 8
       },
       {
-        "level": 161.585,
+        "level": 161.6017,
         "sources": [
-          "15m SuperTrend",
           "4H MA20",
           "1H SuperTrend",
           "1H BOLL upper",
           "15m BOLL upper"
         ],
-        "strength": 5
+        "strength": 4
       },
       {
         "level": 162.48,
@@ -220,20 +220,20 @@
     "score": -5,
     "support_primary": 159.5127,
     "support_secondary": 156.68,
-    "resistance_primary": 160.8858,
-    "resistance_secondary": 161.585,
+    "resistance_primary": 160.9198,
+    "resistance_secondary": 161.6017,
     "invalidation_level": 156.68,
     "limit_order_zone": [
-      159.464777,
-      159.65647
+      159.462569,
+      159.663092
     ],
     "confirmed_entry_zone": [
       159.5127,
-      159.65647
+      159.663092
     ],
     "low_risk_entry": {
-      "buy_score": 33.5,
-      "entry_score": 23.0,
+      "buy_score": 34.6,
+      "entry_score": 24.2,
       "location_score": 0.0,
       "support_quality": 79.0,
       "resistance_validity": 100.0,
@@ -246,32 +246,32 @@
         "4H BOLL lower",
         "15m recent low"
       ],
-      "support_distance_atr": 4.662877,
+      "support_distance_atr": 4.457539,
       "support_distance_score": 0.0,
       "limit_order_zone": [
-        159.464777,
-        159.65647
+        159.462569,
+        159.663092
       ],
       "confirmed_entry_zone": [
         159.5127,
-        159.65647
+        159.663092
       ],
       "limit_order_allowed": false,
       "limit_order_note": "PROBE仅允许小仓试错，必须同步设置probe_stop；未形成CONFIRMED前不得按主仓处理",
       "probe_entry_price": null,
-      "probe_stop": 159.332988,
-      "probe_stop_distance": 1.297012,
-      "probe_rr": 0.1972,
-      "probe_risk_pct_of_entry": 0.8075,
+      "probe_stop": 159.324709,
+      "probe_stop_distance": 1.305291,
+      "probe_rr": 0.222,
+      "probe_risk_pct_of_entry": 0.8126,
       "probe_position_size_class": "small",
       "invalidation_level": 156.68,
-      "risk_reward_ratio": 0.0648,
-      "risk_reward_target": 160.8858,
+      "risk_reward_ratio": 0.0734,
+      "risk_reward_target": 160.9198,
       "has_position": false,
       "breakout_level": 159.9454,
       "breakout_ts": 1790500500000,
       "hard_no_chase": true,
-      "ma20_extension_atr": -1.381,
+      "ma20_extension_atr": -1.706,
       "chase_penalty": 0,
       "probe_signal_count": 0,
       "rules": {
@@ -320,13 +320,13 @@
       }
     },
     "low_risk_short": {
-      "sell_score": 64.4,
-      "entry_score": 62.7,
-      "location_score": 46.6,
+      "sell_score": 65.6,
+      "entry_score": 61.9,
+      "location_score": 42.2,
       "resistance_quality": 100.0,
       "support_validity": 79.0,
       "entry_state": "WAIT",
-      "resistance_anchor": 160.8858,
+      "resistance_anchor": 160.9198,
       "resistance_anchor_sources": [
         "1H BOLL lower",
         "15m BOLL lower",
@@ -334,28 +334,29 @@
         "15m MA10",
         "1H MA20",
         "15m MA20",
-        "1H MA10"
+        "1H MA10",
+        "15m SuperTrend"
       ],
-      "resistance_distance_atr": 1.067541,
+      "resistance_distance_atr": 1.156175,
       "short_order_zone": [
-        160.74203,
-        160.933723
+        160.769408,
+        160.969931
       ],
       "confirmed_short_zone": [
-        160.74203,
-        160.8858
+        160.769408,
+        160.9198
       ],
       "short_order_allowed": true,
       "short_entry_price": null,
-      "short_stop": 161.065512,
-      "short_stop_distance": 0.435512,
-      "short_rr": 2.5655,
-      "short_risk_pct_of_entry": 0.2711,
+      "short_stop": 161.107791,
+      "short_stop_distance": 0.477791,
+      "short_rr": 2.3385,
+      "short_risk_pct_of_entry": 0.2974,
       "short_position_size_class": "small",
       "take_profit_target": 159.5127,
       "has_short_position": false,
       "hard_no_chase": false,
-      "ma20_extension_atr": -1.381,
+      "ma20_extension_atr": -1.706,
       "chase_penalty": 0,
       "probe_signal_count": 3,
       "rules": {
@@ -369,7 +370,7 @@
         "15m_rsi_short_probe_ok": true,
         "volume_ratio_ge_probe": false,
         "volume_ratio_ge_confirm": false,
-        "rejection_touch": true,
+        "rejection_touch": false,
         "short_probe_candidate": false,
         "short_confirmed_candidate": false,
         "short_add_candidate": false
@@ -399,8 +400,8 @@
       "confirmed_buy": {
         "enabled": false,
         "condition": "回踩强支撑完成结构确认，或突破后回踩原阻力完成确认；禁止第一次突破追涨",
-        "trigger_above": 160.8858,
-        "confirmation_above": 161.585
+        "trigger_above": 160.9198,
+        "confirmation_above": 161.6017
       },
       "add": {
         "enabled": false,
@@ -420,7 +421,7 @@
       "short_confirmed": {
         "enabled": false,
         "condition": "阻力附近形成LH/LL + SuperTrend向下 + MACD负 + 放量确认",
-        "trigger_below": 160.8858,
+        "trigger_below": 160.9198,
         "take_profit_target": 159.5127
       },
       "short_add": {
@@ -456,18 +457,18 @@
     "material": false,
     "reasons": [],
     "level_tolerance": 0.64252,
-    "previous_generated_at": "2026-09-28T14:44:05.588287+08:00",
+    "previous_generated_at": "2026-09-28T14:44:24.835170+08:00",
     "previous_price": 160.63,
     "current_price": 160.63
   },
   "performance_tracking": {
     "schema_version": 3,
-    "updated_at_utc": "2026-09-28T06:44:24.835012+00:00",
+    "updated_at_utc": "2026-09-28T06:45:11.116883+00:00",
     "instrument": "OPENAI-USDT-SWAP",
     "tracking_start_utc": "2026-09-28T03:08:00+00:00",
     "historical_rows_preserved": 13,
-    "decision_samples_raw": 4,
-    "decision_samples": 4,
+    "decision_samples_raw": 5,
+    "decision_samples": 5,
     "actionable_observations_raw": 0,
     "actionable_samples": 0,
     "independent_signal_lifecycles": 0,
