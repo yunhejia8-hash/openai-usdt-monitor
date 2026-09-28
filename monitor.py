@@ -841,9 +841,25 @@ def update_performance_tracking(snap,c15=None):
     for row in rows:
         row.setdefault("structural_rr",row.get("risk_reward_ratio")); row.setdefault("tight_stop_rr",None)
     rows=_assign_lifecycle_ids(rows)
+    now=_parse_iso(snap["generated_at_utc"])
     if c15:
-        now=_parse_iso(snap["generated_at_utc"])
         for row in rows: _update_path_from_candles(row,c15,now)
+    else:
+        # Compatibility fallback for tests/manual callers without candle history.
+        f15=snap.get("frames",{}).get("15m",{}); observed_high=float(f15.get("high",price)); observed_low=float(f15.get("low",price))
+        for row in rows:
+            if not row.get("actionable"): continue
+            age_hours=(now-_parse_iso(row["generated_at_utc"])).total_seconds()/3600
+            if age_hours<0: continue
+            entry=float(row["entry_price"]); rside=row["side"]
+            favorable=(observed_high-entry) if rside=="long" else (entry-observed_low)
+            adverse=(entry-observed_low) if rside=="long" else (observed_high-entry)
+            row["mfe_abs"]=round(max(float(row.get("mfe_abs",0)),favorable),6); row["mae_abs"]=round(max(float(row.get("mae_abs",0)),adverse),6)
+            row["mfe_pct"]=round(100*row["mfe_abs"]/entry,6); row["mae_pct"]=round(100*row["mae_abs"]/entry,6)
+            for h in PERFORMANCE_HORIZONS_HOURS:
+                key=str(h)
+                if key not in row.setdefault("checkpoint_returns_pct",{}) and age_hours>=h:
+                    ret=(price-entry)/entry*100; row["checkpoint_returns_pct"][key]=round(ret if rside=="long" else -ret,6)
     _write_signal_history(rows)
     actionable=[x for x in rows if x.get("actionable")]; lifecycle_first={}
     for row in actionable:
@@ -854,8 +870,8 @@ def update_performance_tracking(snap,c15=None):
     for h in PERFORMANCE_HORIZONS_HOURS:
         key=str(h); v=[x.get("checkpoint_returns_pct",{}).get(key) for x in independent if isinstance(x.get("checkpoint_returns_pct",{}).get(key),(int,float))]
         horizon_stats[key]={"samples":len(v),"win_rate":round(sum(x>0 for x in v)/len(v),4) if v else None,"avg_return_pct":round(sum(v)/len(v),6) if v else None}
-    summary={"schema_version":2,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],"decision_samples_raw":len(rows),
-        "actionable_observations_raw":len(actionable),"independent_signal_lifecycles":len(independent),
+    summary={"schema_version":2,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],"decision_samples_raw":len(rows),"decision_samples":len(rows),
+        "actionable_observations_raw":len(actionable),"actionable_samples":len(actionable),"independent_signal_lifecycles":len(independent),
         "duplicate_actionable_observations":len(actionable)-len(independent),"horizon_stats":horizon_stats,
         "notes":["Performance tracking is observational only and never changes live strategy thresholds.",
         "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
