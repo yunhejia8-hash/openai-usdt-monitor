@@ -1,16 +1,16 @@
 <!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
-    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>161.46</b> · Regime: <b>mixed</b> · Strategy: <b>观望</b></p>
-    <p>Material change: <b>True</b> · Reasons: limit_order_zone_changed:[160.84537, 160.977889]->[161.209323, 161.38403], confirmed_entry_zone_changed:[160.8785, 160.977889]->[161.253, 161.38403], hard_no_chase:True->False</p>
-    <p>Updated: 2026-09-28T08:00:10.144575+08:00 (UTC+8)</p>
+    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>161.4</b> · Regime: <b>mixed</b> · Strategy: <b>试仓候选</b></p>
+    <p>Material change: <b>True</b> · Reasons: state:观望->试仓候选, entry_state:WAIT->PROBE, entry_score_crossed_58:57.8->65.3, resistance_shift:162.16->163.8755</p>
+    <p>Updated: 2026-09-28T08:50:05.123943+08:00 (UTC+8)</p>
     <h2>入场计划（候选信号，不自动下单）</h2><pre>{
-  "buy_score": 61.0,
-  "entry_score": 57.8,
-  "location_score": 52.6,
+  "buy_score": 59.2,
+  "entry_score": 65.3,
+  "location_score": 64.2,
   "support_quality": 100.0,
-  "resistance_validity": 48.0,
-  "entry_state": "WAIT",
-  "entry_mode": null,
-  "entry_label": "WAIT",
+  "resistance_validity": 71.0,
+  "entry_state": "PROBE",
+  "entry_mode": "PULLBACK",
+  "entry_label": "LIMIT/PROBE",
   "support_anchor": 161.253,
   "support_anchor_sources": [
     "1H MA20",
@@ -25,40 +25,40 @@
     "4H MA20",
     "1H BOLL upper"
   ],
-  "support_distance_atr": 0.947872,
-  "support_distance_score": 52.6,
+  "support_distance_atr": 0.715879,
+  "support_distance_score": 64.2,
   "limit_order_zone": [
-    161.209323,
-    161.38403
+    161.211932,
+    161.376205
   ],
   "confirmed_entry_zone": [
     161.253,
-    161.38403
+    161.376205
   ],
   "limit_order_allowed": true,
   "limit_order_note": "PROBE仅允许小仓试错，必须同步设置probe_stop；未形成CONFIRMED前不得按主仓处理",
-  "probe_entry_price": null,
-  "probe_stop": 161.089212,
-  "probe_stop_distance": 0.370788,
-  "probe_rr": 1.8879,
-  "probe_risk_pct_of_entry": 0.2296,
+  "probe_entry_price": 161.4,
+  "probe_stop": 161.098993,
+  "probe_stop_distance": 0.301007,
+  "probe_rr": 8.2241,
+  "probe_risk_pct_of_entry": 0.1865,
   "probe_position_size_class": "small",
   "invalidation_level": 159.4412,
-  "risk_reward_ratio": 0.3467,
-  "risk_reward_target": 162.16,
+  "risk_reward_ratio": 1.2638,
+  "risk_reward_target": 163.8755,
   "has_position": false,
   "breakout_level": 159.9454,
   "breakout_ts": 1790500500000,
   "hard_no_chase": false,
-  "ma20_extension_atr": 0.817,
+  "ma20_extension_atr": 0.363,
   "chase_penalty": 0,
   "probe_signal_count": 2,
   "rules": {
     "near_support": false,
     "valid_atr": true,
-    "pullback_touch": true,
+    "pullback_touch": false,
     "risk_reward_ok": false,
-    "near_support_probe": false,
+    "near_support_probe": true,
     "decisive_break": false,
     "reclaimed_support": true,
     "15m_HL": false,
@@ -67,7 +67,7 @@
     "15m_rsi_probe_ok": true,
     "volume_ratio_ge_probe": false,
     "volume_ratio_ge_confirm": false,
-    "probe_candidate": false,
+    "probe_candidate": true,
     "pullback_confirmed": false,
     "breakout_retest_candidate": false,
     "add_candidate": false
@@ -98,10 +98,10 @@
     "add_rr_min": 2.0
   }
 }</pre>
-    <table border="1" cellpadding="6" cellspacing="0"><tr><th>周期</th><th>收盘</th><th>趋势</th><th>结构</th><th>RSI6</th><th>SuperTrend</th></tr><tr><td>15m</td><td>161.4600</td><td>neutral</td><td>contracting</td><td>62.9</td><td>160.9131</td></tr><tr><td>1H</td><td>161.4600</td><td>neutral</td><td>HH_HL</td><td>71.8</td><td>161.5668</td></tr><tr><td>4H</td><td>161.4600</td><td>bearish</td><td>LH_LL</td><td>56.5</td><td>164.6879</td></tr></table>
+    <table border="1" cellpadding="6" cellspacing="0"><tr><th>周期</th><th>收盘</th><th>趋势</th><th>结构</th><th>RSI6</th><th>SuperTrend</th></tr><tr><td>15m</td><td>161.3900</td><td>bullish</td><td>contracting</td><td>53.3</td><td>160.9131</td></tr><tr><td>1H</td><td>161.4600</td><td>neutral</td><td>HH_HL</td><td>71.8</td><td>161.5668</td></tr><tr><td>4H</td><td>161.4600</td><td>bearish</td><td>LH_LL</td><td>56.5</td><td>164.6879</td></tr></table>
     <h2>支撑</h2><pre>[
   {
-    "level": 161.253,
+    "level": 161.2898,
     "sources": [
       "1H MA20",
       "15m SuperTrend",
@@ -110,12 +110,13 @@
       "1H MA10",
       "15m MA20",
       "15m MA10",
-      "15m BOLL upper",
       "1H SuperTrend",
+      "15m recent high",
+      "15m BOLL upper",
       "4H MA20",
       "1H BOLL upper"
     ],
-    "strength": 11
+    "strength": 12
   },
   {
     "level": 159.4412,
@@ -136,13 +137,6 @@
   }
 ]</pre>
     <h2>阻力</h2><pre>[
-  {
-    "level": 162.16,
-    "sources": [
-      "15m recent high"
-    ],
-    "strength": 1
-  },
   {
     "level": 163.8755,
     "sources": [

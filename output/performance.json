@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-09-28T00:00:10.144420+00:00",
+  "updated_at_utc": "2026-09-28T00:50:05.123766+00:00",
   "instrument": "OPENAI-USDT-SWAP",
-  "decision_samples": 9,
-  "actionable_samples": 2,
+  "decision_samples": 10,
+  "actionable_samples": 3,
   "horizon_stats": {
     "0.5": {
       "samples": 2,
