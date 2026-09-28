@@ -829,8 +829,17 @@ def update_performance_tracking(snap,c15=None):
     if long_e.get("entry_state","WAIT")!="WAIT": side,state,src="long",long_e["entry_state"],long_e
     elif short_e.get("entry_state","WAIT")!="WAIT": side,state,src="short",short_e["entry_state"],short_e
     else: side,state,src=None,"WAIT",long_e
-    structural_rr=src.get("risk_reward_ratio") if side!="short" else src.get("short_rr")
-    tight_stop_rr=src.get("probe_rr") if side=="long" else src.get("short_rr") if side=="short" else None
+    if side=="short":
+        tight_stop_rr=src.get("short_rr")
+        anchor=src.get("resistance_anchor"); target=src.get("take_profit_target")
+        higher=[x.get("level") for x in snap.get("levels",{}).get("resistances",[]) if isinstance(x.get("level"),(int,float)) and anchor is not None and x.get("level")>anchor]
+        structural_stop=min(higher) if higher else None
+        structural_risk=structural_stop-price if structural_stop is not None else None
+        structural_reward=price-target if isinstance(target,(int,float)) else None
+        structural_rr=structural_reward/structural_risk if structural_risk and structural_risk>0 and structural_reward and structural_reward>0 else None
+    else:
+        structural_rr=src.get("risk_reward_ratio")
+        tight_stop_rr=src.get("probe_rr") if side=="long" else None
     record={"generated_at_utc":snap["generated_at_utc"],"generated_at_sgt":snap["generated_at_sgt"],"instrument":snap["instrument"],
         "entry_price":price,"side":side,"state":state,"actionable":side is not None,"regime":snap.get("summary",{}).get("regime"),
         "timeframe_trends":snap.get("summary",{}).get("timeframe_trends"),"buy_score":long_e.get("buy_score"),"sell_score":short_e.get("sell_score"),
