@@ -768,6 +768,7 @@ PERFORMANCE_PATH=OUT/"performance.json"
 SIGNAL_HISTORY_PATH=OUT/"signal_history.jsonl"
 PERFORMANCE_HORIZONS_HOURS=(0.5,1,4,12,24)
 LIFECYCLE_GAP_HOURS=2.0
+TRACKING_START_UTC="2026-09-28T03:08:00+00:00"  # 2026-09-28 11:08 UTC+8; new official sample era
 
 def _read_signal_history():
     if not SIGNAL_HISTORY_PATH.exists(): return []
@@ -778,8 +779,10 @@ def _read_signal_history():
         except Exception: continue
     return rows
 
-def _write_signal_history(rows):
-    SIGNAL_HISTORY_PATH.write_text("".join(json.dumps(x,ensure_ascii=False,separators=(",",":"))+"\n" for x in rows),encoding="utf-8")
+def _append_signal_history(row):
+    # Immutable raw ledger: each monitor observation is appended once; prior rows are never rewritten.
+    with SIGNAL_HISTORY_PATH.open("a",encoding="utf-8") as f:
+        f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
 
 def _parse_iso(ts): return datetime.fromisoformat(ts.replace("Z","+00:00"))
 
@@ -846,17 +849,22 @@ def update_performance_tracking(snap,c15=None):
         "entry_score":src.get("entry_score"),"location_score":src.get("location_score"),"risk_reward_ratio":structural_rr,
         "structural_rr":structural_rr,"tight_stop_rr":tight_stop_rr,"entry_mode":src.get("entry_mode"),
         "mfe_abs":0.0,"mae_abs":0.0,"mfe_pct":0.0,"mae_pct":0.0,"checkpoint_returns_pct":{},"data_quality":"pending confirmed 15m candle backfill"}
-    if not any(x.get("generated_at_utc")==record["generated_at_utc"] for x in rows): rows.append(record)
-    for row in rows:
+    is_new=not any(x.get("generated_at_utc")==record["generated_at_utc"] for x in rows)
+    working_rows=[dict(x) for x in rows]
+    if is_new: working_rows.append(record)
+    for row in working_rows:
         row.setdefault("structural_rr",row.get("risk_reward_ratio")); row.setdefault("tight_stop_rr",None)
-    rows=_assign_lifecycle_ids(rows)
+    working_rows=_assign_lifecycle_ids(working_rows)
+    if is_new:
+        new_row=next(x for x in working_rows if x.get("generated_at_utc")==record["generated_at_utc"])
+        _append_signal_history(new_row)
     now=_parse_iso(snap["generated_at_utc"])
     if c15:
-        for row in rows: _update_path_from_candles(row,c15,now)
+        for row in working_rows: _update_path_from_candles(row,c15,now)
     else:
         # Compatibility fallback for tests/manual callers without candle history.
         f15=snap.get("frames",{}).get("15m",{}); observed_high=float(f15.get("high",price)); observed_low=float(f15.get("low",price))
-        for row in rows:
+        for row in working_rows:
             if not row.get("actionable"): continue
             age_hours=(now-_parse_iso(row["generated_at_utc"])).total_seconds()/3600
             if age_hours<0: continue
@@ -869,8 +877,10 @@ def update_performance_tracking(snap,c15=None):
                 key=str(h)
                 if key not in row.setdefault("checkpoint_returns_pct",{}) and age_hours>=h:
                     ret=(price-entry)/entry*100; row["checkpoint_returns_pct"][key]=round(ret if rside=="long" else -ret,6)
-    _write_signal_history(rows)
-    actionable=[x for x in rows if x.get("actionable")]; lifecycle_first={}
+    # Official statistics start at the explicit cutover; older ledger rows remain preserved but excluded.
+    cutoff=_parse_iso(TRACKING_START_UTC)
+    stats_rows=[x for x in working_rows if _parse_iso(x["generated_at_utc"])>=cutoff]
+    actionable=[x for x in stats_rows if x.get("actionable")]; lifecycle_first={}
     for row in actionable:
         lid=row.get("signal_lifecycle_id")
         if lid and lid not in lifecycle_first: lifecycle_first[lid]=row
@@ -880,9 +890,12 @@ def update_performance_tracking(snap,c15=None):
         key=str(h); v=[x.get("checkpoint_returns_pct",{}).get(key) for x in independent if isinstance(x.get("checkpoint_returns_pct",{}).get(key),(int,float))]
         horizon_stats[key]={"samples":len(v),"win_rate":round(sum(x>0 for x in v)/len(v),4) if v else None,"avg_return_pct":round(sum(v)/len(v),6) if v else None}
     summary={"schema_version":2,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],"decision_samples_raw":len(rows),"decision_samples":len(rows),
+        "tracking_start_utc":TRACKING_START_UTC,"historical_rows_preserved":len(working_rows)-len(stats_rows),"decision_samples_raw":len(stats_rows),"decision_samples":len(stats_rows),
         "actionable_observations_raw":len(actionable),"actionable_samples":len(actionable),"independent_signal_lifecycles":len(independent),
         "duplicate_actionable_observations":len(actionable)-len(independent),"horizon_stats":horizon_stats,
-        "notes":["Performance tracking is observational only and never changes live strategy thresholds.",
+        "notes":["Official statistics include only observations at/after tracking_start_utc; older ledger rows are preserved for audit only.",
+        "signal_history.jsonl is append-only: new observations append one line and never rewrite prior sample rows.",
+        "Performance tracking is observational only and never changes live strategy thresholds.",
         "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
         "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
         "tight_stop_rr and structural_rr are stored separately; do not compare them as the same risk definition.",
