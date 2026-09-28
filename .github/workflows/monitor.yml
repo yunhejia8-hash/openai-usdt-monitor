@@ -19,10 +19,8 @@ on:
       - "test_monitor.py"
       - "requirements.txt"
       - "workflow_health.py"
-      - "watchdog.py"
       - "test_health_watchdog.py"
       - ".github/workflows/monitor.yml"
-      - ".github/workflows/watchdog.yml"
 
 permissions:
   contents: write
