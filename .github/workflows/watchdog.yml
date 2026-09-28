@@ -1,0 +1,31 @@
+name: Recover stale OPENAIUSDT snapshot
+
+on:
+  schedule:
+    # Independent recovery probe, offset from the primary monitor schedule.
+    - cron: "2,17,32,47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: openai-usdt-watchdog
+  cancel-in-progress: true
+
+jobs:
+  recover-if-stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Evaluate freshness and recover if needed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python watchdog.py
