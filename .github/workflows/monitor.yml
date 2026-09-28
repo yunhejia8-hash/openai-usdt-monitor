@@ -7,12 +7,22 @@ on:
     # the freshness gate below keeps actual snapshots near the 30-minute target.
     - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
+    inputs:
+      trigger_source:
+        description: "Caller identity for health telemetry"
+        required: false
+        default: "manual"
+        type: string
   push:
     paths:
       - "monitor.py"
       - "test_monitor.py"
       - "requirements.txt"
+      - "workflow_health.py"
+      - "watchdog.py"
+      - "test_health_watchdog.py"
       - ".github/workflows/monitor.yml"
+      - ".github/workflows/watchdog.yml"
 
 permissions:
   contents: write
@@ -75,11 +85,11 @@ jobs:
         if: steps.freshness.outputs.skip != 'true'
         run: pip install -r requirements.txt
 
-      - name: Validate strategy
+      - name: Validate strategy and reliability code
         if: steps.freshness.outputs.skip != 'true'
         run: |
           python -m unittest -v
-          python -m py_compile monitor.py test_monitor.py
+          python -m py_compile monitor.py workflow_health.py watchdog.py test_monitor.py test_health_watchdog.py
 
       - name: Fetch OKX market data
         if: steps.freshness.outputs.skip != 'true'
@@ -101,48 +111,19 @@ jobs:
           done
 
       - name: Write workflow health
-        if: steps.freshness.outputs.skip != 'true'
+        if: steps.freshness.outcome == 'success' && (steps.freshness.outputs.skip == 'true' || success())
         shell: bash
         env:
           RUN_EVENT: ${{ github.event_name }}
+          TRIGGER_SOURCE: ${{ inputs.trigger_source || github.event_name }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           RUN_SHA: ${{ github.sha }}
           PREVIOUS_AGE_MINUTES: ${{ steps.freshness.outputs.previous_age_minutes }}
-          PREVIOUS_HEALTH: ${{ steps.freshness.outputs.previous_health }}
-        run: |
-          python - <<'PY'
-          import json, os
-          from datetime import datetime, timezone
-          from pathlib import Path
-          latest = json.loads(Path("output/latest.json").read_text(encoding="utf-8"))
-          generated = latest.get("generated_at_utc")
-          now = datetime.now(timezone.utc)
-          snapshot_age = (now - datetime.fromisoformat(generated.replace("Z","+00:00"))).total_seconds()/60 if generated else None
-          previous_age = float(os.environ["PREVIOUS_AGE_MINUTES"]) if os.environ.get("PREVIOUS_AGE_MINUTES") else None
-          health = {
-              "schema_version": 2,
-              "updated_at_utc": now.isoformat(),
-              "event": os.environ["RUN_EVENT"],
-              "run_id": os.environ["RUN_ID"],
-              "run_attempt": os.environ["RUN_ATTEMPT"],
-              "trigger_sha": os.environ["RUN_SHA"],
-              "snapshot_generated": True,
-              "snapshot_generated_at_utc": generated,
-              "snapshot_age_minutes_at_health_write": round(snapshot_age,3) if snapshot_age is not None else None,
-              "previous_snapshot_age_minutes": round(previous_age,3) if previous_age is not None else None,
-              "previous_snapshot_health": os.environ.get("PREVIOUS_HEALTH") or "unknown",
-              "freshness_sla_minutes": 60,
-              "target_snapshot_interval_minutes": 30,
-              "health_status": "stale_gap_recovered" if previous_age is not None and previous_age > 60 else "healthy"
-          }
-          Path("output/workflow_health.json").write_text(
-              json.dumps(health, indent=2), encoding="utf-8"
-          )
-          PY
+        run: python workflow_health.py
 
-      - name: Commit snapshot
-        if: steps.freshness.outputs.skip != 'true'
+      - name: Commit snapshot and health telemetry
+        if: steps.freshness.outcome == 'success' && (steps.freshness.outputs.skip == 'true' || success())
         shell: bash
         run: |
           set -euo pipefail
@@ -177,7 +158,8 @@ jobs:
             sleep $((attempt * 5))
           done
 
-# Reliability hardening:
-# - 15-minute redundant schedule probes
-# - skip scheduled work when snapshot age <25 minutes
-# - workflow_dispatch remains available for explicit recovery
+# Reliability design:
+# - monitor.yml owns market collection and strategy evaluation
+# - 15-minute probes target an effective ~30-minute snapshot cadence
+# - every observed schedule probe updates schedule-continuity telemetry, even when market refresh is skipped
+# - watchdog.yml is a separate stale-data recovery path and dispatches this workflow only when needed
