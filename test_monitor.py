@@ -48,6 +48,14 @@ class EntryTests(unittest.TestCase):
                 entry(sample())["entry_state"],entry(sample(has_position=True))["entry_state"]]
         self.assertEqual(states,["WAIT","PROBE","CONFIRMED","ADD"])
 
+    def test_setup_marks_near_qualified_without_trade_permission(self):
+        s=sample(164.49+1.0*0.318,volume=0.9)
+        e=entry(s)
+        self.assertEqual(e["entry_state"],"SETUP")
+        self.assertTrue(e["rules"]["setup_candidate"])
+        self.assertFalse(s["strategy"]["triggers"]["probe"]["enabled"])
+        self.assertTrue(s["strategy"]["triggers"]["setup"]["enabled"])
+
     def test_probe_has_mandatory_stop_and_rr(self):
         s=sample(164.55,volume=0.9)
         e=entry(s)
@@ -167,6 +175,7 @@ class EntryTests(unittest.TestCase):
                 f[key]=164.49
         with tempfile.TemporaryDirectory() as folder, patch.object(monitor,"OUT",Path(folder)), \
                 patch.object(monitor,"SIGNAL_HISTORY_PATH",Path(folder)/"signal_history.jsonl"), \
+                patch.object(monitor,"SIGNAL_EVALUATIONS_PATH",Path(folder)/"signal_evaluations.jsonl"), \
                 patch.object(monitor,"PERFORMANCE_PATH",Path(folder)/"performance.json"), \
                 patch.object(monitor,"ticker",return_value=s["ticker"]), \
                 patch.object(monitor,"candles",return_value=[]), \
@@ -181,6 +190,14 @@ class EntryTests(unittest.TestCase):
             monitor.main()
             self.assertFalse(monitor.load_previous_snapshot()["change"]["material"])
 
+
+    def test_short_setup_marks_near_qualified_without_trade_permission(self):
+        s=short_sample(164.49-1.0*0.318,volume=0.9)
+        e=s["strategy"]["low_risk_short"]
+        self.assertEqual(e["entry_state"],"SHORT_SETUP")
+        self.assertTrue(e["rules"]["short_setup_candidate"])
+        self.assertFalse(s["strategy"]["triggers"]["short_probe"]["enabled"])
+        self.assertTrue(s["strategy"]["triggers"]["short_setup"]["enabled"])
 
     def test_short_probe_has_stop_and_rr(self):
         s=short_sample(volume=0.9)
@@ -237,6 +254,7 @@ class EntryTests(unittest.TestCase):
             "strategy":s["strategy"]
         }
         with tempfile.TemporaryDirectory() as folder, patch.object(monitor,"SIGNAL_HISTORY_PATH",Path(folder)/"signal_history.jsonl"), \
+                patch.object(monitor,"SIGNAL_EVALUATIONS_PATH",Path(folder)/"signal_evaluations.jsonl"), \
                 patch.object(monitor,"PERFORMANCE_PATH",Path(folder)/"performance.json"):
             first=monitor.update_performance_tracking(snap)
             self.assertEqual(first["decision_samples"],1)
@@ -255,6 +273,31 @@ class EntryTests(unittest.TestCase):
             self.assertEqual(rows[0]["checkpoint_returns_pct"],{})
             self.assertEqual(second["horizon_stats"]["1"]["samples"],1)
             self.assertGreater(second["horizon_stats"]["1"]["avg_return_pct"],0)
+
+    def test_setup_is_recorded_but_not_actionable(self):
+        s=sample(164.49+1.0*0.318,volume=0.9)
+        for f in s["frames"].values():
+            for key in ("ma10","ma20","boll_upper","boll_lower","recent_high","recent_low"):
+                f[key]=164.49
+        snap={
+            "instrument":monitor.INST_ID,
+            "generated_at_utc":"2026-09-29T00:00:00+00:00",
+            "generated_at_sgt":"2026-09-29T08:00:00+08:00",
+            "ticker":{"last":164.808},
+            "summary":{"regime":"mixed","timeframe_trends":{"15m":"bullish","1H":"neutral","4H":"neutral"}},
+            "frames":s["frames"],
+            "strategy":s["strategy"]
+        }
+        with tempfile.TemporaryDirectory() as folder, patch.object(monitor,"SIGNAL_HISTORY_PATH",Path(folder)/"signal_history.jsonl"), \
+                patch.object(monitor,"SIGNAL_EVALUATIONS_PATH",Path(folder)/"signal_evaluations.jsonl"), \
+                patch.object(monitor,"PERFORMANCE_PATH",Path(folder)/"performance.json"):
+            result=monitor.update_performance_tracking(snap)
+            row=json.loads((Path(folder)/"signal_history.jsonl").read_text(encoding="utf-8").strip())
+            self.assertEqual(row["state"],"SETUP")
+            self.assertFalse(row["actionable"])
+            self.assertIsNone(row["side"])
+            self.assertEqual(result["actionable_samples"],0)
+            self.assertEqual(result["independent_signal_lifecycles"],0)
 
 
 if __name__=="__main__":
