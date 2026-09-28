@@ -1,33 +1,35 @@
 {
-  "schema_version": 2,
-  "updated_at_utc": "2026-09-28T02:53:40.958332+00:00",
+  "schema_version": 3,
+  "updated_at_utc": "2026-09-28T03:11:01.711078+00:00",
   "instrument": "OPENAI-USDT-SWAP",
-  "decision_samples_raw": 13,
-  "decision_samples": 13,
-  "actionable_observations_raw": 6,
-  "actionable_samples": 6,
-  "independent_signal_lifecycles": 3,
-  "duplicate_actionable_observations": 3,
+  "tracking_start_utc": "2026-09-28T03:08:00+00:00",
+  "historical_rows_preserved": 13,
+  "decision_samples_raw": 1,
+  "decision_samples": 1,
+  "actionable_observations_raw": 0,
+  "actionable_samples": 0,
+  "independent_signal_lifecycles": 0,
+  "duplicate_actionable_observations": 0,
   "horizon_stats": {
     "0.5": {
-      "samples": 2,
-      "win_rate": 0.5,
-      "avg_return_pct": 0.01534
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
     },
     "1": {
-      "samples": 2,
-      "win_rate": 0.5,
-      "avg_return_pct": -0.000328
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
     },
     "4": {
-      "samples": 1,
-      "win_rate": 0.0,
-      "avg_return_pct": -0.556737
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
     },
     "12": {
-      "samples": 1,
-      "win_rate": 0.0,
-      "avg_return_pct": -0.494182
+      "samples": 0,
+      "win_rate": null,
+      "avg_return_pct": null
     },
     "24": {
       "samples": 0,
@@ -36,6 +38,8 @@
     }
   },
   "notes": [
+    "Official statistics include only observations at/after tracking_start_utc; older ledger rows are preserved for audit only.",
+    "signal_history.jsonl is append-only: new observations append one line and never rewrite prior sample rows.",
     "Performance tracking is observational only and never changes live strategy thresholds.",
     "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
     "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
