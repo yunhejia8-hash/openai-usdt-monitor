@@ -850,13 +850,20 @@ def update_performance_tracking(snap,c15=None):
         "structural_rr":structural_rr,"tight_stop_rr":tight_stop_rr,"entry_mode":src.get("entry_mode"),
         "mfe_abs":0.0,"mae_abs":0.0,"mfe_pct":0.0,"mae_pct":0.0,"checkpoint_returns_pct":{},"data_quality":"pending confirmed 15m candle backfill"}
     is_new=not any(x.get("generated_at_utc")==record["generated_at_utc"] for x in rows)
-    working_rows=[dict(x) for x in rows]
-    if is_new: working_rows.append(record)
+    cutoff=_parse_iso(TRACKING_START_UTC)
+    historical_rows=[dict(x) for x in rows if _parse_iso(x["generated_at_utc"])<cutoff]
+    working_rows=[dict(x) for x in rows if _parse_iso(x["generated_at_utc"])>=cutoff]
+    if is_new and _parse_iso(record["generated_at_utc"])>=cutoff: working_rows.append(record)
     for row in working_rows:
         row.setdefault("structural_rr",row.get("risk_reward_ratio")); row.setdefault("tight_stop_rr",None)
+    # Lifecycle IDs are assigned only within the new official tracking era, so a pre-cutover
+    # signal can never absorb the first post-cutover sample.
     working_rows=_assign_lifecycle_ids(working_rows)
     if is_new:
-        new_row=next(x for x in working_rows if x.get("generated_at_utc")==record["generated_at_utc"])
+        if _parse_iso(record["generated_at_utc"])>=cutoff:
+            new_row=next(x for x in working_rows if x.get("generated_at_utc")==record["generated_at_utc"])
+        else:
+            new_row=record
         _append_signal_history(new_row)
     now=_parse_iso(snap["generated_at_utc"])
     if c15:
@@ -877,9 +884,8 @@ def update_performance_tracking(snap,c15=None):
                 key=str(h)
                 if key not in row.setdefault("checkpoint_returns_pct",{}) and age_hours>=h:
                     ret=(price-entry)/entry*100; row["checkpoint_returns_pct"][key]=round(ret if rside=="long" else -ret,6)
-    # Official statistics start at the explicit cutover; older ledger rows remain preserved but excluded.
-    cutoff=_parse_iso(TRACKING_START_UTC)
-    stats_rows=[x for x in working_rows if _parse_iso(x["generated_at_utc"])>=cutoff]
+    # Official statistics use only the append-only post-cutover ledger.
+    stats_rows=working_rows
     actionable=[x for x in stats_rows if x.get("actionable")]; lifecycle_first={}
     for row in actionable:
         lid=row.get("signal_lifecycle_id")
@@ -889,8 +895,8 @@ def update_performance_tracking(snap,c15=None):
     for h in PERFORMANCE_HORIZONS_HOURS:
         key=str(h); v=[x.get("checkpoint_returns_pct",{}).get(key) for x in independent if isinstance(x.get("checkpoint_returns_pct",{}).get(key),(int,float))]
         horizon_stats[key]={"samples":len(v),"win_rate":round(sum(x>0 for x in v)/len(v),4) if v else None,"avg_return_pct":round(sum(v)/len(v),6) if v else None}
-    summary={"schema_version":2,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],"decision_samples_raw":len(rows),"decision_samples":len(rows),
-        "tracking_start_utc":TRACKING_START_UTC,"historical_rows_preserved":len(working_rows)-len(stats_rows),"decision_samples_raw":len(stats_rows),"decision_samples":len(stats_rows),
+    summary={"schema_version":3,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],
+        "tracking_start_utc":TRACKING_START_UTC,"historical_rows_preserved":len(historical_rows),"decision_samples_raw":len(stats_rows),"decision_samples":len(stats_rows),
         "actionable_observations_raw":len(actionable),"actionable_samples":len(actionable),"independent_signal_lifecycles":len(independent),
         "duplicate_actionable_observations":len(actionable)-len(independent),"horizon_stats":horizon_stats,
         "notes":["Official statistics include only observations at/after tracking_start_utc; older ledger rows are preserved for audit only.",
