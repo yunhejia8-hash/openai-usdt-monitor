@@ -1,21 +1,21 @@
 {
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-28T02:52:30.779592+00:00",
-  "generated_at_sgt": "2026-09-28T10:52:30.779739+08:00",
+  "generated_at_utc": "2026-09-28T02:53:14.596893+00:00",
+  "generated_at_sgt": "2026-09-28T10:53:14.597065+08:00",
   "ticker": {
     "last": 161.3,
-    "lastSz": 0.05,
+    "lastSz": 0.06,
     "askPx": 161.37,
     "askSz": 0.01,
-    "bidPx": 161.31,
-    "bidSz": 0.15,
-    "open24h": 160.37,
+    "bidPx": 161.27,
+    "bidSz": 0.58,
+    "open24h": 160.31,
     "high24h": 162.48,
     "low24h": 159.18,
-    "vol24h": 1428.58,
-    "volCcy24h": 1428.58,
-    "ts": 1790563949073
+    "vol24h": 1427.04,
+    "volCcy24h": 1427.04,
+    "ts": 1790563993269
   },
   "summary": {
     "regime": "mixed",
@@ -472,35 +472,23 @@
     "MACD histogram = 2*(DIFF-DEA)"
   ],
   "change": {
-    "material": true,
-    "reasons": [
-      "state:试仓候选->空头试仓候选",
-      "entry_state:PROBE->WAIT",
-      "buy_score_crossed_55:59.2->54.6",
-      "entry_score_crossed_68:65.3->77.1",
-      "entry_score_crossed_70:65.3->77.1",
-      "entry_score_crossed_75:65.3->77.1",
-      "limit_order_zone_changed:[161.211932, 161.376205]->[161.200377, 161.41087]",
-      "confirmed_entry_zone_changed:[161.253, 161.376205]->[161.253, 161.41087]",
-      "limit_order_allowed:True->False",
-      "support_shift:161.2898->160.0798",
-      "resistance_shift:163.8755->161.3567"
-    ],
+    "material": false,
+    "reasons": [],
     "level_tolerance": 0.6452,
-    "previous_generated_at": "2026-09-28T08:50:05.123943+08:00",
-    "previous_price": 161.4,
+    "previous_generated_at": "2026-09-28T10:52:30.779739+08:00",
+    "previous_price": 161.3,
     "current_price": 161.3
   },
   "performance_tracking": {
     "schema_version": 2,
-    "updated_at_utc": "2026-09-28T02:52:30.779592+00:00",
+    "updated_at_utc": "2026-09-28T02:53:14.596893+00:00",
     "instrument": "OPENAI-USDT-SWAP",
-    "decision_samples_raw": 11,
-    "decision_samples": 11,
-    "actionable_observations_raw": 4,
-    "actionable_samples": 4,
+    "decision_samples_raw": 12,
+    "decision_samples": 12,
+    "actionable_observations_raw": 5,
+    "actionable_samples": 5,
     "independent_signal_lifecycles": 3,
-    "duplicate_actionable_observations": 1,
+    "duplicate_actionable_observations": 2,
     "horizon_stats": {
       "0.5": {
         "samples": 2,
