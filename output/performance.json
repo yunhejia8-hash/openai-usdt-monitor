@@ -1,29 +1,33 @@
 {
-  "schema_version": 1,
-  "updated_at_utc": "2026-09-28T00:50:05.123766+00:00",
+  "schema_version": 2,
+  "updated_at_utc": "2026-09-28T02:52:30.779592+00:00",
   "instrument": "OPENAI-USDT-SWAP",
-  "decision_samples": 10,
-  "actionable_samples": 3,
+  "decision_samples_raw": 11,
+  "decision_samples": 11,
+  "actionable_observations_raw": 4,
+  "actionable_samples": 4,
+  "independent_signal_lifecycles": 3,
+  "duplicate_actionable_observations": 1,
   "horizon_stats": {
     "0.5": {
       "samples": 2,
-      "win_rate": 0.0,
-      "avg_return_pct": -0.475416
+      "win_rate": 0.5,
+      "avg_return_pct": 0.01534
     },
     "1": {
       "samples": 2,
-      "win_rate": 0.0,
-      "avg_return_pct": -0.475416
+      "win_rate": 0.5,
+      "avg_return_pct": -0.000328
     },
     "4": {
-      "samples": 2,
+      "samples": 1,
       "win_rate": 0.0,
-      "avg_return_pct": -0.325285
+      "avg_return_pct": -0.556737
     },
     "12": {
-      "samples": 2,
+      "samples": 1,
       "win_rate": 0.0,
-      "avg_return_pct": -0.750657
+      "avg_return_pct": -0.494182
     },
     "24": {
       "samples": 0,
@@ -33,7 +37,9 @@
   },
   "notes": [
     "Performance tracking is observational only and never changes live strategy thresholds.",
-    "MFE/MAE are sampled estimates until candle-level backfill is added.",
+    "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
+    "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
+    "tight_stop_rr and structural_rr are stored separately; do not compare them as the same risk definition.",
     "Do not optimize thresholds from small samples; validate candidate changes out of sample."
   ]
 }
