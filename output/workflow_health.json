@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "updated_at_utc": "2026-09-28T03:11:01.774546+00:00",
-  "event": "push",
-  "run_id": "36372694980",
+  "updated_at_utc": "2026-09-28T05:11:16.853577+00:00",
+  "event": "schedule",
+  "run_id": "36380794994",
   "run_attempt": "1",
-  "trigger_sha": "f44f169bd6f17c1c3aed9bb8d8adfb5f3e8cd3ac",
+  "trigger_sha": "825b1554c28328b72c459e004f68535de401b10b",
   "snapshot_generated": true,
-  "snapshot_generated_at_utc": "2026-09-28T03:11:01.711078+00:00",
+  "snapshot_generated_at_utc": "2026-09-28T05:11:16.790534+00:00",
   "snapshot_age_minutes_at_health_write": 0.001,
-  "previous_snapshot_age_minutes": 17.273,
-  "previous_snapshot_health": "fresh",
+  "previous_snapshot_age_minutes": 120.175,
+  "previous_snapshot_health": "stale",
   "freshness_sla_minutes": 60,
   "target_snapshot_interval_minutes": 30,
-  "health_status": "healthy"
+  "health_status": "stale_gap_recovered"
 }
