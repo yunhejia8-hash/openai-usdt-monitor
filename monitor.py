@@ -234,6 +234,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
     # Shared confirmations.
     near_support=s_level is not None and abs(price-s_level)<=0.60*atr
     near_support_probe=s_level is not None and abs(price-s_level)<=0.80*atr
+    near_support_setup=s_level is not None and abs(price-s_level)<=1.10*atr
     decisive_break=s_level is not None and price < s_level-0.20*atr
     reclaimed=s_level is not None and price>=s_level
     hl=f15["structure"]["label"]=="HH_HL"
@@ -308,7 +309,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
     # without weakening PROBE/CONFIRMED risk gates.
     setup_candidate=(
         not probe_candidate and valid_atr and not decisive_break and not hard_no_chase
-        and near_support_probe and location>=50 and support_quality>=38
+        and near_support_setup and location>=45 and support_quality>=38
         and buy_score>=48 and entry_score>=48 and probe_signal_count>=1
         and probe_stop is not None and probe_stop<price
         and probe_rr is not None and probe_rr>=0.8
@@ -369,6 +370,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
             "pullback_touch":pullback_touch,
             "risk_reward_ok":rr_ok,
             "near_support_probe":near_support_probe,
+            "near_support_setup":near_support_setup,
             "decisive_break":decisive_break,
             "reclaimed_support":reclaimed,
             "15m_HL":hl,
@@ -386,7 +388,8 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         "thresholds":{
             "setup_buy_score_min":48,
             "setup_entry_score_min":48,
-            "setup_location_min":50,
+            "setup_location_min":45,
+            "setup_near_support_atr":1.10,
             "setup_rr_min":0.8,
             "probe_buy_score_min":52,
             "probe_entry_score_min":52,
@@ -464,6 +467,7 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
 
     near_resistance=r_level is not None and abs(price-r_level)<=0.60*atr
     near_resistance_probe=r_level is not None and abs(price-r_level)<=0.80*atr
+    near_resistance_setup=r_level is not None and abs(price-r_level)<=1.10*atr
     decisive_breakout=r_level is not None and price>r_level+0.20*atr
     rejected=r_level is not None and price<=r_level
     lh=f15["structure"]["label"]=="LH_LL"
@@ -521,7 +525,7 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
     # SHORT_SETUP mirrors long SETUP: visible to monitoring, never actionable by itself.
     setup_candidate=(
         not probe_candidate and valid_atr and not decisive_breakout and not hard_no_chase
-        and near_resistance_probe and location>=50 and resistance_quality>=38
+        and near_resistance_setup and location>=45 and resistance_quality>=38
         and sell_score>=48 and entry_score>=48 and probe_signal_count>=1
         and short_stop is not None and short_stop>price
         and short_rr is not None and short_rr>=0.8
@@ -566,6 +570,7 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
         "rules":{
             "near_resistance":near_resistance,
             "near_resistance_probe":near_resistance_probe,
+            "near_resistance_setup":near_resistance_setup,
             "decisive_breakout":decisive_breakout,
             "rejected_resistance":rejected,
             "15m_LH_LL":lh,
@@ -583,7 +588,8 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
         "thresholds":{
             "short_setup_sell_score_min":48,
             "short_setup_entry_score_min":48,
-            "short_setup_location_min":50,
+            "short_setup_location_min":45,
+            "short_setup_near_resistance_atr":1.10,
             "short_setup_rr_min":0.8,
             "short_probe_sell_score_min":52,
             "short_probe_entry_score_min":52,
