@@ -21,8 +21,9 @@ def snapshot_age_minutes(latest, now):
     return (now - parse_ts(ts)).total_seconds() / 60
 
 
-def should_dispatch(age_minutes, active_runs):
-    return (age_minutes is None or age_minutes >= STALE_TRIGGER_MINUTES) and active_runs == 0
+def should_dispatch(age_minutes, active_runs, force=False):
+    stale = age_minutes is None or age_minutes >= STALE_TRIGGER_MINUTES
+    return (force or stale) and active_runs == 0
 
 
 def api_request(url, token, method="GET", payload=None):
@@ -63,7 +64,9 @@ def main():
     active = sum(1 for run in runs.get("workflow_runs", []) if run.get("status") in {"queued", "in_progress"})
     print(f"active_monitor_runs={active}")
 
-    if not should_dispatch(age, active):
+    force = os.environ.get("WATCHDOG_FORCE", "false").lower() == "true"
+    print(f"watchdog_force={force}")
+    if not should_dispatch(age, active, force=force):
         print("watchdog_action=none")
         return
 
