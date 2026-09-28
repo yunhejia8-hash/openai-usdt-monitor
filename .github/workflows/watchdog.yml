@@ -5,6 +5,11 @@ on:
     # Independent recovery probe, offset from the primary monitor schedule.
     - cron: "2,17,32,47 * * * *"
   workflow_dispatch:
+  push:
+    paths:
+      - "watchdog.py"
+      - "test_health_watchdog.py"
+      - ".github/workflows/watchdog.yml"
 
 permissions:
   contents: read
