@@ -304,6 +304,16 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         and ext<=1.5 and location>=70 and rr is not None and rr>=2.0
     )
 
+    # SETUP is intentionally non-actionable: it identifies near-qualified opportunities
+    # without weakening PROBE/CONFIRMED risk gates.
+    setup_candidate=(
+        not probe_candidate and valid_atr and not decisive_break and not hard_no_chase
+        and near_support_probe and location>=50 and support_quality>=38
+        and buy_score>=48 and entry_score>=48 and probe_signal_count>=1
+        and probe_stop is not None and probe_stop<price
+        and probe_rr is not None and probe_rr>=0.8
+    )
+
     if add_candidate:
         entry_state="ADD"
         entry_mode="BREAKOUT_RETEST" if retest_candidate else "PULLBACK"
@@ -312,6 +322,9 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         entry_mode="BREAKOUT_RETEST" if retest_candidate else "PULLBACK"
     elif probe_candidate:
         entry_state="PROBE"
+        entry_mode="PULLBACK"
+    elif setup_candidate:
+        entry_state="SETUP"
         entry_mode="PULLBACK"
     else:
         entry_state="WAIT"
@@ -365,11 +378,16 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
             "volume_ratio_ge_probe":probe_vol,
             "volume_ratio_ge_confirm":confirm_vol,
             "probe_candidate":probe_candidate,
+            "setup_candidate":setup_candidate,
             "pullback_confirmed":pullback_confirmed,
             "breakout_retest_candidate":retest_candidate,
             "add_candidate":add_candidate
         },
         "thresholds":{
+            "setup_buy_score_min":48,
+            "setup_entry_score_min":48,
+            "setup_location_min":50,
+            "setup_rr_min":0.8,
             "probe_buy_score_min":52,
             "probe_entry_score_min":52,
             "probe_location_min":55,
@@ -500,12 +518,23 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
         and location>=70 and short_rr is not None and short_rr>=2.0
     )
 
+    # SHORT_SETUP mirrors long SETUP: visible to monitoring, never actionable by itself.
+    setup_candidate=(
+        not probe_candidate and valid_atr and not decisive_breakout and not hard_no_chase
+        and near_resistance_probe and location>=50 and resistance_quality>=38
+        and sell_score>=48 and entry_score>=48 and probe_signal_count>=1
+        and short_stop is not None and short_stop>price
+        and short_rr is not None and short_rr>=0.8
+    )
+
     if add_candidate:
         entry_state="SHORT_ADD"
     elif confirmed_candidate:
         entry_state="SHORT_CONFIRMED"
     elif probe_candidate:
         entry_state="SHORT_PROBE"
+    elif setup_candidate:
+        entry_state="SHORT_SETUP"
     else:
         entry_state="WAIT"
 
@@ -547,10 +576,15 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
             "volume_ratio_ge_confirm":confirm_vol,
             "rejection_touch":rejection_touch,
             "short_probe_candidate":probe_candidate,
+            "short_setup_candidate":setup_candidate,
             "short_confirmed_candidate":confirmed_candidate,
             "short_add_candidate":add_candidate
         },
         "thresholds":{
+            "short_setup_sell_score_min":48,
+            "short_setup_entry_score_min":48,
+            "short_setup_location_min":50,
+            "short_setup_rr_min":0.8,
             "short_probe_sell_score_min":52,
             "short_probe_entry_score_min":52,
             "short_probe_location_min":55,
@@ -593,6 +627,8 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False, has_s
         state="正式做空候选"
     elif short_state=="SHORT_PROBE":
         state="空头试仓候选"
+    elif short_state=="SHORT_SETUP":
+        state="空头等待低风险确认"
     elif entry_state=="ADD":
         state="加仓候选"
     elif entry_state=="CONFIRMED":
@@ -623,6 +659,10 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False, has_s
         "low_risk_entry":entry,
         "low_risk_short":short_entry,
         "triggers":{
+            "setup":{
+                "enabled":entry_state=="SETUP",
+                "condition":"接近低风险试仓条件，但至少一项PROBE硬条件尚未满足；仅观察，不下单"
+            },
             "probe":{
                 "enabled":entry_state=="PROBE",
                 "condition":entry["limit_order_note"],
@@ -643,6 +683,10 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False, has_s
             "buy_or_add":{
                 "enabled":entry_state in ("CONFIRMED","ADD"),
                 "condition":"兼容旧字段：正式买入或加仓候选；试仓请读取 triggers.probe"
+            },
+            "short_setup":{
+                "enabled":short_state=="SHORT_SETUP",
+                "condition":"接近低风险试空条件，但至少一项SHORT_PROBE硬条件尚未满足；仅观察，不下单"
             },
             "short_probe":{
                 "enabled":short_state=="SHORT_PROBE",
@@ -766,6 +810,7 @@ def detect_material_change(previous,current):
 
 PERFORMANCE_PATH=OUT/"performance.json"
 SIGNAL_HISTORY_PATH=OUT/"signal_history.jsonl"
+SIGNAL_EVALUATIONS_PATH=OUT/"signal_evaluations.jsonl"
 PERFORMANCE_HORIZONS_HOURS=(0.5,1,4,12,24)
 LIFECYCLE_GAP_HOURS=2.0
 TRACKING_START_UTC="2026-09-28T03:08:00+00:00"  # 2026-09-28 11:08 UTC+8; new official sample era
@@ -785,6 +830,20 @@ def _append_signal_history(row):
         f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
 
 def _parse_iso(ts): return datetime.fromisoformat(ts.replace("Z","+00:00"))
+
+def _read_signal_evaluations():
+    if not SIGNAL_EVALUATIONS_PATH.exists(): return []
+    rows=[]
+    for line in SIGNAL_EVALUATIONS_PATH.read_text(encoding="utf-8").splitlines():
+        try:
+            if line.strip(): rows.append(json.loads(line))
+        except Exception: continue
+    return rows
+
+def _append_signal_evaluation(row):
+    # Append-only audit events. Raw signal_history rows remain immutable.
+    with SIGNAL_EVALUATIONS_PATH.open("a",encoding="utf-8") as f:
+        f.write(json.dumps(row,ensure_ascii=False,separators=(",",":"))+"\n")
 
 def _state_family(state):
     if state in ("PROBE","CONFIRMED","ADD"): return "LONG"
@@ -826,11 +885,48 @@ def _update_path_from_candles(row,c15,now):
             checkpoints[str(h)]=round(ret if side=="long" else -ret,6)
     row["data_quality"]="confirmed 15m candle backfill; path limited to fetched history window"
 
+def _append_missing_historical_evaluations(historical_rows,c15,now):
+    if not c15: return 0
+    existing=_read_signal_evaluations()
+    seen={x.get("signal_lifecycle_id") for x in existing if x.get("event_type")=="HISTORICAL_PATH_EVALUATED"}
+    lifecycle_first={}
+    for row in historical_rows:
+        lid=row.get("signal_lifecycle_id")
+        if row.get("actionable") and lid and lid not in lifecycle_first:
+            lifecycle_first[lid]=row
+    appended=0
+    for lid,row in lifecycle_first.items():
+        if lid in seen: continue
+        evaluated=dict(row)
+        evaluated["checkpoint_returns_pct"]=dict(row.get("checkpoint_returns_pct",{}))
+        _update_path_from_candles(evaluated,c15,now)
+        if not evaluated.get("checkpoint_returns_pct"): continue
+        _append_signal_evaluation({
+            "event_type":"HISTORICAL_PATH_EVALUATED",
+            "evaluated_at_utc":now.isoformat(),
+            "signal_lifecycle_id":lid,
+            "signal_generated_at_utc":row.get("generated_at_utc"),
+            "instrument":row.get("instrument",INST_ID),
+            "side":row.get("side"),
+            "entry_price":row.get("entry_price"),
+            "mfe_abs":evaluated.get("mfe_abs"),
+            "mae_abs":evaluated.get("mae_abs"),
+            "mfe_pct":evaluated.get("mfe_pct"),
+            "mae_pct":evaluated.get("mae_pct"),
+            "checkpoint_returns_pct":evaluated.get("checkpoint_returns_pct",{}),
+            "data_quality":evaluated.get("data_quality")
+        })
+        appended+=1
+    return appended
+
 def update_performance_tracking(snap,c15=None):
     rows=_read_signal_history(); price=float(snap["ticker"]["last"])
     long_e=snap.get("strategy",{}).get("low_risk_entry",{}); short_e=snap.get("strategy",{}).get("low_risk_short",{})
-    if long_e.get("entry_state","WAIT")!="WAIT": side,state,src="long",long_e["entry_state"],long_e
-    elif short_e.get("entry_state","WAIT")!="WAIT": side,state,src="short",short_e["entry_state"],short_e
+    long_state=long_e.get("entry_state","WAIT"); short_state=short_e.get("entry_state","WAIT")
+    if long_state in ("PROBE","CONFIRMED","ADD"): side,state,src="long",long_state,long_e
+    elif short_state in ("SHORT_PROBE","SHORT_CONFIRMED","SHORT_ADD"): side,state,src="short",short_state,short_e
+    elif long_state=="SETUP": side,state,src=None,"SETUP",long_e
+    elif short_state=="SHORT_SETUP": side,state,src=None,"SHORT_SETUP",short_e
     else: side,state,src=None,"WAIT",long_e
     if side=="short":
         tight_stop_rr=src.get("short_rr")
@@ -866,6 +962,7 @@ def update_performance_tracking(snap,c15=None):
             new_row=record
         _append_signal_history(new_row)
     now=_parse_iso(snap["generated_at_utc"])
+    historical_evaluations_appended=_append_missing_historical_evaluations(historical_rows,c15,now)
     if c15:
         for row in working_rows: _update_path_from_candles(row,c15,now)
     else:
@@ -898,9 +995,12 @@ def update_performance_tracking(snap,c15=None):
     summary={"schema_version":3,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],
         "tracking_start_utc":TRACKING_START_UTC,"historical_rows_preserved":len(historical_rows),"decision_samples_raw":len(stats_rows),"decision_samples":len(stats_rows),
         "actionable_observations_raw":len(actionable),"actionable_samples":len(actionable),"independent_signal_lifecycles":len(independent),
-        "duplicate_actionable_observations":len(actionable)-len(independent),"horizon_stats":horizon_stats,
+        "duplicate_actionable_observations":len(actionable)-len(independent),
+        "historical_evaluations_appended":historical_evaluations_appended,"horizon_stats":horizon_stats,
         "notes":["Official statistics include only observations at/after tracking_start_utc; older ledger rows are preserved for audit only.",
         "signal_history.jsonl is append-only: new observations append one line and never rewrite prior sample rows.",
+        "signal_evaluations.jsonl stores append-only historical path evaluations separately from raw observations.",
+        "SETUP and SHORT_SETUP are non-actionable near-qualified states and never create trade lifecycles.",
         "Performance tracking is observational only and never changes live strategy thresholds.",
         "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
         "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
