@@ -767,132 +767,109 @@ def detect_material_change(previous,current):
 PERFORMANCE_PATH=OUT/"performance.json"
 SIGNAL_HISTORY_PATH=OUT/"signal_history.jsonl"
 PERFORMANCE_HORIZONS_HOURS=(0.5,1,4,12,24)
+LIFECYCLE_GAP_HOURS=2.0
 
 def _read_signal_history():
-    if not SIGNAL_HISTORY_PATH.exists():
-        return []
+    if not SIGNAL_HISTORY_PATH.exists(): return []
     rows=[]
     for line in SIGNAL_HISTORY_PATH.read_text(encoding="utf-8").splitlines():
-        line=line.strip()
-        if not line:
-            continue
         try:
-            rows.append(json.loads(line))
-        except Exception:
-            continue
+            if line.strip(): rows.append(json.loads(line))
+        except Exception: continue
     return rows
 
 def _write_signal_history(rows):
-    SIGNAL_HISTORY_PATH.write_text(
-        "".join(json.dumps(x,ensure_ascii=False,separators=(",",":"))+"\n" for x in rows),
-        encoding="utf-8"
-    )
+    SIGNAL_HISTORY_PATH.write_text("".join(json.dumps(x,ensure_ascii=False,separators=(",",":"))+"\n" for x in rows),encoding="utf-8")
 
-def _parse_iso(ts):
-    return datetime.fromisoformat(ts.replace("Z","+00:00"))
+def _parse_iso(ts): return datetime.fromisoformat(ts.replace("Z","+00:00"))
 
-def update_performance_tracking(snap):
-    """Persist strategy decisions and track post-signal outcomes without changing strategy logic."""
-    rows=_read_signal_history()
-    now=_parse_iso(snap["generated_at_utc"])
-    price=float(snap["ticker"]["last"])
-    f15=snap.get("frames",{}).get("15m",{})
-    observed_high=float(f15.get("high",price))
-    observed_low=float(f15.get("low",price))
+def _state_family(state):
+    if state in ("PROBE","CONFIRMED","ADD"): return "LONG"
+    if state in ("SHORT_PROBE","SHORT_CONFIRMED","SHORT_ADD"): return "SHORT"
+    return "WAIT"
 
-    # Update prior actionable signals with sampled post-signal path.
-    for row in rows:
+def _assign_lifecycle_ids(rows):
+    last_by_family={}; seq=0
+    for row in sorted(rows,key=lambda x:x.get("generated_at_utc","")):
         if not row.get("actionable"):
-            continue
-        age_hours=(now-_parse_iso(row["generated_at_utc"])).total_seconds()/3600
-        if age_hours<0:
-            continue
-        entry=float(row["entry_price"])
-        side=row["side"]
-        favorable=(observed_high-entry) if side=="long" else (entry-observed_low)
-        adverse=(entry-observed_low) if side=="long" else (observed_high-entry)
-        row["mfe_abs"]=round(max(float(row.get("mfe_abs",0)),favorable),6)
-        row["mae_abs"]=round(max(float(row.get("mae_abs",0)),adverse),6)
-        row["mfe_pct"]=round(100*row["mfe_abs"]/entry,6)
-        row["mae_pct"]=round(100*row["mae_abs"]/entry,6)
-        checkpoints=row.setdefault("checkpoint_returns_pct",{})
-        for h in PERFORMANCE_HORIZONS_HOURS:
-            key=str(h)
-            if key not in checkpoints and age_hours>=h:
-                ret=(price-entry)/entry*100
-                checkpoints[key]=round(ret if side=="long" else -ret,6)
+            row["signal_lifecycle_id"]=None; continue
+        family=_state_family(row.get("state")); ts=_parse_iso(row["generated_at_utc"]); prior=last_by_family.get(family)
+        if prior and (ts-prior[0]).total_seconds()/3600<=LIFECYCLE_GAP_HOURS:
+            lifecycle_id=prior[1]
+        else:
+            seq+=1; lifecycle_id=f"{row.get('instrument',INST_ID)}:{family}:{ts.strftime('%Y%m%dT%H%M%S')}:{seq}"
+        row["signal_lifecycle_id"]=lifecycle_id; last_by_family[family]=(ts,lifecycle_id)
+    return rows
 
-    long_e=snap.get("strategy",{}).get("low_risk_entry",{})
-    short_e=snap.get("strategy",{}).get("low_risk_short",{})
-    long_state=long_e.get("entry_state","WAIT")
-    short_state=short_e.get("entry_state","WAIT")
-    if long_state!="WAIT":
-        side,state,src="long",long_state,long_e
-    elif short_state!="WAIT":
-        side,state,src="short",short_state,short_e
-    else:
-        side,state,src=None,"WAIT",long_e
+def _update_path_from_candles(row,c15,now):
+    if not row.get("actionable"): return
+    signal_ts=_parse_iso(row["generated_at_utc"]); entry=float(row["entry_price"]); side=row["side"]
+    usable=[]
+    for bar in c15:
+        bar_ts=datetime.fromtimestamp(bar["ts"]/1000,tz=timezone.utc)
+        if signal_ts < bar_ts <= now: usable.append((bar_ts,bar))
+    if not usable: return
+    highs=[bar["high"] for _,bar in usable]; lows=[bar["low"] for _,bar in usable]
+    favorable=max(highs)-entry if side=="long" else entry-min(lows)
+    adverse=entry-min(lows) if side=="long" else max(highs)-entry
+    row["mfe_abs"]=round(max(0.0,favorable),6); row["mae_abs"]=round(max(0.0,adverse),6)
+    row["mfe_pct"]=round(100*row["mfe_abs"]/entry,6); row["mae_pct"]=round(100*row["mae_abs"]/entry,6)
+    checkpoints=row.setdefault("checkpoint_returns_pct",{})
+    for h in PERFORMANCE_HORIZONS_HOURS:
+        target=signal_ts.timestamp()+h*3600
+        eligible=[(ts,bar) for ts,bar in usable if ts.timestamp()>=target]
+        if eligible:
+            ret=(float(eligible[0][1]["close"])-entry)/entry*100
+            checkpoints[str(h)]=round(ret if side=="long" else -ret,6)
+    row["data_quality"]="confirmed 15m candle backfill; path limited to fetched history window"
 
-    record={
-        "generated_at_utc":snap["generated_at_utc"],
-        "generated_at_sgt":snap["generated_at_sgt"],
-        "instrument":snap["instrument"],
-        "entry_price":price,
-        "side":side,
-        "state":state,
-        "actionable":side is not None,
-        "regime":snap.get("summary",{}).get("regime"),
-        "timeframe_trends":snap.get("summary",{}).get("timeframe_trends"),
-        "buy_score":long_e.get("buy_score"),
-        "sell_score":short_e.get("sell_score"),
-        "entry_score":src.get("entry_score"),
-        "location_score":src.get("location_score"),
-        "risk_reward_ratio":src.get("risk_reward_ratio") if side!="short" else src.get("short_rr"),
-        "entry_mode":src.get("entry_mode"),
-        "mfe_abs":0.0,
-        "mae_abs":0.0,
-        "mfe_pct":0.0,
-        "mae_pct":0.0,
-        "checkpoint_returns_pct":{},
-        "data_quality":"30m sampled path; MFE/MAE use observed 15m high/low at monitor runs"
-    }
-    if not any(x.get("generated_at_utc")==record["generated_at_utc"] for x in rows):
-        rows.append(record)
+def update_performance_tracking(snap,c15=None):
+    rows=_read_signal_history(); price=float(snap["ticker"]["last"])
+    long_e=snap.get("strategy",{}).get("low_risk_entry",{}); short_e=snap.get("strategy",{}).get("low_risk_short",{})
+    if long_e.get("entry_state","WAIT")!="WAIT": side,state,src="long",long_e["entry_state"],long_e
+    elif short_e.get("entry_state","WAIT")!="WAIT": side,state,src="short",short_e["entry_state"],short_e
+    else: side,state,src=None,"WAIT",long_e
+    structural_rr=src.get("risk_reward_ratio") if side!="short" else src.get("short_rr")
+    tight_stop_rr=src.get("probe_rr") if side=="long" else src.get("short_rr") if side=="short" else None
+    record={"generated_at_utc":snap["generated_at_utc"],"generated_at_sgt":snap["generated_at_sgt"],"instrument":snap["instrument"],
+        "entry_price":price,"side":side,"state":state,"actionable":side is not None,"regime":snap.get("summary",{}).get("regime"),
+        "timeframe_trends":snap.get("summary",{}).get("timeframe_trends"),"buy_score":long_e.get("buy_score"),"sell_score":short_e.get("sell_score"),
+        "entry_score":src.get("entry_score"),"location_score":src.get("location_score"),"risk_reward_ratio":structural_rr,
+        "structural_rr":structural_rr,"tight_stop_rr":tight_stop_rr,"entry_mode":src.get("entry_mode"),
+        "mfe_abs":0.0,"mae_abs":0.0,"mfe_pct":0.0,"mae_pct":0.0,"checkpoint_returns_pct":{},"data_quality":"pending confirmed 15m candle backfill"}
+    if not any(x.get("generated_at_utc")==record["generated_at_utc"] for x in rows): rows.append(record)
+    for row in rows:
+        row.setdefault("structural_rr",row.get("risk_reward_ratio")); row.setdefault("tight_stop_rr",None)
+    rows=_assign_lifecycle_ids(rows)
+    if c15:
+        now=_parse_iso(snap["generated_at_utc"])
+        for row in rows: _update_path_from_candles(row,c15,now)
     _write_signal_history(rows)
-
-    actionable=[x for x in rows if x.get("actionable")]
-    def vals(h):
-        key=str(h)
-        return [x.get("checkpoint_returns_pct",{}).get(key) for x in actionable
-                if isinstance(x.get("checkpoint_returns_pct",{}).get(key),(int,float))]
+    actionable=[x for x in rows if x.get("actionable")]; lifecycle_first={}
+    for row in actionable:
+        lid=row.get("signal_lifecycle_id")
+        if lid and lid not in lifecycle_first: lifecycle_first[lid]=row
+    independent=list(lifecycle_first.values())
     horizon_stats={}
     for h in PERFORMANCE_HORIZONS_HOURS:
-        v=vals(h)
-        horizon_stats[str(h)]={
-            "samples":len(v),
-            "win_rate":round(sum(x>0 for x in v)/len(v),4) if v else None,
-            "avg_return_pct":round(sum(v)/len(v),6) if v else None
-        }
-    summary={
-        "schema_version":1,
-        "updated_at_utc":snap["generated_at_utc"],
-        "instrument":snap["instrument"],
-        "decision_samples":len(rows),
-        "actionable_samples":len(actionable),
-        "horizon_stats":horizon_stats,
-        "notes":[
-            "Performance tracking is observational only and never changes live strategy thresholds.",
-            "MFE/MAE are sampled estimates until candle-level backfill is added.",
-            "Do not optimize thresholds from small samples; validate candidate changes out of sample."
-        ]
-    }
-    PERFORMANCE_PATH.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8")
-    return summary
+        key=str(h); v=[x.get("checkpoint_returns_pct",{}).get(key) for x in independent if isinstance(x.get("checkpoint_returns_pct",{}).get(key),(int,float))]
+        horizon_stats[key]={"samples":len(v),"win_rate":round(sum(x>0 for x in v)/len(v),4) if v else None,"avg_return_pct":round(sum(v)/len(v),6) if v else None}
+    summary={"schema_version":2,"updated_at_utc":snap["generated_at_utc"],"instrument":snap["instrument"],"decision_samples_raw":len(rows),
+        "actionable_observations_raw":len(actionable),"independent_signal_lifecycles":len(independent),
+        "duplicate_actionable_observations":len(actionable)-len(independent),"horizon_stats":horizon_stats,
+        "notes":["Performance tracking is observational only and never changes live strategy thresholds.",
+        "Raw decision rows are retained for audit; performance statistics use independent signal lifecycles.",
+        "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
+        "tight_stop_rr and structural_rr are stored separately; do not compare them as the same risk definition.",
+        "Do not optimize thresholds from small samples; validate candidate changes out of sample."]}
+    PERFORMANCE_PATH.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8"); return summary
 
 def main():
     previous=load_previous_snapshot()
-    t=ticker(); frames={}
-    for tf,(bar,limit,recent) in TFS.items(): frames[tf]=metrics(candles(bar,limit),recent)
+    t=ticker(); frames={}; raw_frames={}
+    for tf,(bar,limit,recent) in TFS.items():
+        raw_frames[tf]=candles(bar,limit)
+        frames[tf]=metrics(raw_frames[tf],recent)
     lvls=levels(float(t["last"]),frames)
     snap={
         "schema_version":8,"instrument":INST_ID,
@@ -905,7 +882,7 @@ def main():
         "notes":["dual-direction v1: long and short candidates are independent; SHORT requires resistance rejection and never derives from long WAIT alone","low-risk entry v5: PROBE uses small size + mandatory tight stop; CONFIRMED expands only after structure confirmation; ADD requires confirmed continuation","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
     snap["change"]=detect_material_change(previous,snap)
-    snap["performance_tracking"]=update_performance_tracking(snap)
+    snap["performance_tracking"]=update_performance_tracking(snap,raw_frames.get("15m"))
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
     rows="".join(f"<tr><td>{tf}</td><td>{m['close']:.4f}</td><td>{m['trend']}</td><td>{m['structure']['label']}</td><td>{m['rsi6']:.1f}</td><td>{m['supertrend_10_3']:.4f}</td></tr>" for tf,m in frames.items())
     html=f"""<!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
