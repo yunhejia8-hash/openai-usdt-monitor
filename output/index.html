@@ -1,11 +1,11 @@
 <!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
-    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>158.27</b> · Regime: <b>bearish_alignment</b> · Strategy: <b>观望</b></p>
-    <p>Material change: <b>True</b> · Reasons: limit_order_zone_changed:[157.193365, 157.634304]->[157.815189, 158.305634], confirmed_entry_zone_changed:[157.3036, 157.634304]->[157.9378, 158.305634], hard_no_chase:True->False, support_shift:157.3036->157.9378, resistance_shift:158.23->159.0834, price_crossed_resistance_up:158.23</p>
-    <p>Updated: 2026-09-29T00:20:59.374171+08:00 (UTC+8)</p>
+    <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>158.34</b> · Regime: <b>bearish_alignment</b> · Strategy: <b>观望</b></p>
+    <p>Material change: <b>False</b> · Reasons: none</p>
+    <p>Updated: 2026-09-29T00:22:54.332113+08:00 (UTC+8)</p>
     <h2>入场计划（候选信号，不自动下单）</h2><pre>{
   "buy_score": 37.4,
-  "entry_score": 56.0,
-  "location_score": 72.9,
+  "entry_score": 53.4,
+  "location_score": 67.2,
   "support_quality": 46.0,
   "resistance_validity": 77.0,
   "entry_state": "WAIT",
@@ -16,8 +16,8 @@
     "1H BOLL lower",
     "15m MA10"
   ],
-  "support_distance_atr": 0.541875,
-  "support_distance_score": 72.9,
+  "support_distance_atr": 0.656058,
+  "support_distance_score": 67.2,
   "limit_order_zone": [
     157.815189,
     158.305634
@@ -30,12 +30,12 @@
   "limit_order_note": "PROBE仅允许小仓试错，必须同步设置probe_stop；未形成CONFIRMED前不得按主仓处理",
   "probe_entry_price": null,
   "probe_stop": 157.478008,
-  "probe_stop_distance": 0.791992,
-  "probe_rr": 1.027,
-  "probe_risk_pct_of_entry": 0.5004,
+  "probe_stop_distance": 0.861992,
+  "probe_rr": 0.8624,
+  "probe_risk_pct_of_entry": 0.5444,
   "probe_position_size_class": "small",
   "invalidation_level": 157.1693,
-  "risk_reward_ratio": 0.739,
+  "risk_reward_ratio": 0.635,
   "risk_reward_target": 159.0834,
   "has_position": false,
   "breakout_level": null,
@@ -45,11 +45,12 @@
   "chase_penalty": 0,
   "probe_signal_count": 1,
   "rules": {
-    "near_support": true,
+    "near_support": false,
     "valid_atr": true,
     "pullback_touch": false,
     "risk_reward_ok": false,
     "near_support_probe": true,
+    "near_support_setup": true,
     "decisive_break": false,
     "reclaimed_support": true,
     "15m_HL": true,
@@ -67,7 +68,8 @@
   "thresholds": {
     "setup_buy_score_min": 48,
     "setup_entry_score_min": 48,
-    "setup_location_min": 50,
+    "setup_location_min": 45,
+    "setup_near_support_atr": 1.1,
     "setup_rr_min": 0.8,
     "probe_buy_score_min": 52,
     "probe_entry_score_min": 52,
