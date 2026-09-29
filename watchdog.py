@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 LATEST_PATH = Path("output/latest.json")
-STALE_TRIGGER_MINUTES = 50
+STALE_TRIGGER_MINUTES = 45
 MONITOR_WORKFLOW = "monitor.yml"
 
 
