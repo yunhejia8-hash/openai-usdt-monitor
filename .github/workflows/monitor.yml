@@ -3,9 +3,9 @@ name: Update OPENAIUSDT market snapshot
 on:
   schedule:
     # GitHub scheduled workflows are best-effort and can be delayed/dropped.
-    # Ask the scheduler every 15 minutes to reduce the chance of a long gap;
+    # Ask the scheduler every 10 minutes to reduce the chance of a long gap;
     # the freshness gate below keeps actual snapshots near the 30-minute target.
-    - cron: "7,22,37,52 * * * *"
+    - cron: "7,17,27,37,47,57 * * * *"
   workflow_dispatch:
     inputs:
       trigger_source:
@@ -161,6 +161,6 @@ jobs:
 
 # Reliability design:
 # - monitor.yml owns market collection and strategy evaluation
-# - 15-minute probes target an effective ~30-minute snapshot cadence
+# - 10-minute probes target an effective ~30-minute snapshot cadence
 # - every observed schedule probe updates schedule-continuity telemetry, even when market refresh is skipped
 # - watchdog.yml is a separate stale-data recovery path and dispatches this workflow only when needed
