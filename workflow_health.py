@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 LATEST_PATH = Path("output/latest.json")
@@ -26,6 +26,8 @@ def build_health(latest, previous, *, now, event, trigger_source, run_id, run_at
     generated = latest.get("generated_at_utc")
     generated_dt = parse_ts(generated)
     snapshot_age = (now - generated_dt).total_seconds() / 60 if generated_dt else None
+    snapshot_due_dt = generated_dt + timedelta(minutes=TARGET_INTERVAL_MINUTES) if generated_dt else None
+    snapshot_fresh_until_dt = generated_dt + timedelta(minutes=FRESHNESS_SLA_MINUTES) if generated_dt else None
 
     prior_schedule = previous.get("last_schedule_observed_at_utc")
     if not prior_schedule and previous.get("event") == "schedule":
@@ -40,10 +42,11 @@ def build_health(latest, previous, *, now, event, trigger_source, run_id, run_at
     last_schedule_dt = parse_ts(last_schedule)
     schedule_age = (now - last_schedule_dt).total_seconds() / 60 if last_schedule_dt else None
 
-    # Two consecutive target windows without a schedule observation is degraded.
-    missed_windows = 0 if schedule_age is None else max(0, int(schedule_age // TARGET_INTERVAL_MINUTES) - 1)
+    # Missing one full target window is already degraded; recovery runs can still
+    # refresh the snapshot while preserving the schedule-continuity warning.
+    missed_windows = 0 if schedule_age is None else max(0, int(schedule_age // TARGET_INTERVAL_MINUTES))
     recovered_schedule_gap = bool(gap_before_current_schedule and gap_before_current_schedule > FRESHNESS_SLA_MINUTES)
-    schedule_degraded = (schedule_age is None) or missed_windows >= 2
+    schedule_degraded = (schedule_age is None) or missed_windows >= 1
 
     prior_age = previous_age_minutes
     stale_gap_recovered = prior_age is not None and prior_age > FRESHNESS_SLA_MINUTES
@@ -68,6 +71,8 @@ def build_health(latest, previous, *, now, event, trigger_source, run_id, run_at
         "snapshot_generated": bool(generated),
         "snapshot_generated_at_utc": generated,
         "snapshot_age_minutes_at_health_write": round(snapshot_age, 3) if snapshot_age is not None else None,
+        "snapshot_due_at_utc": snapshot_due_dt.isoformat() if snapshot_due_dt else None,
+        "snapshot_fresh_until_utc": snapshot_fresh_until_dt.isoformat() if snapshot_fresh_until_dt else None,
         "previous_snapshot_age_minutes": round(prior_age, 3) if prior_age is not None else None,
         "freshness_sla_minutes": FRESHNESS_SLA_MINUTES,
         "target_snapshot_interval_minutes": TARGET_INTERVAL_MINUTES,
