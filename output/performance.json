@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-09-29T01:05:32.102056+00:00",
+  "updated_at_utc": "2026-09-29T02:07:33.126905+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 25,
-  "decision_samples": 25,
+  "decision_samples_raw": 26,
+  "decision_samples": 26,
   "actionable_observations_raw": 6,
   "actionable_samples": 6,
   "independent_signal_lifecycles": 2,
@@ -48,5 +48,113 @@
     "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
     "tight_stop_rr and structural_rr are stored separately; do not compare them as the same risk definition.",
     "Do not optimize thresholds from small samples; validate candidate changes out of sample."
-  ]
+  ],
+  "probe_stop_risk": {
+    "long": {
+      "4": {
+        "status": "insufficient_samples",
+        "probability_estimate": null,
+        "samples": 0,
+        "minimum_samples": 30,
+        "stop_first": 0,
+        "target_first": 0,
+        "timeouts": 0,
+        "ambiguous": 0,
+        "observed_rate_bounds": [
+          null,
+          null
+        ],
+        "wilson_95_interval": [
+          null,
+          null
+        ],
+        "mean_initial_leg_net_return_pct_bounds": [
+          null,
+          null
+        ],
+        "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
+        "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
+      },
+      "24": {
+        "status": "insufficient_samples",
+        "probability_estimate": null,
+        "samples": 0,
+        "minimum_samples": 30,
+        "stop_first": 0,
+        "target_first": 0,
+        "timeouts": 0,
+        "ambiguous": 0,
+        "observed_rate_bounds": [
+          null,
+          null
+        ],
+        "wilson_95_interval": [
+          null,
+          null
+        ],
+        "mean_initial_leg_net_return_pct_bounds": [
+          null,
+          null
+        ],
+        "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
+        "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
+      }
+    },
+    "short": {
+      "4": {
+        "status": "insufficient_samples",
+        "probability_estimate": null,
+        "samples": 0,
+        "minimum_samples": 30,
+        "stop_first": 0,
+        "target_first": 0,
+        "timeouts": 0,
+        "ambiguous": 0,
+        "observed_rate_bounds": [
+          null,
+          null
+        ],
+        "wilson_95_interval": [
+          null,
+          null
+        ],
+        "mean_initial_leg_net_return_pct_bounds": [
+          null,
+          null
+        ],
+        "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
+        "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
+      },
+      "24": {
+        "status": "insufficient_samples",
+        "probability_estimate": null,
+        "samples": 0,
+        "minimum_samples": 30,
+        "stop_first": 0,
+        "target_first": 0,
+        "timeouts": 0,
+        "ambiguous": 0,
+        "observed_rate_bounds": [
+          null,
+          null
+        ],
+        "wilson_95_interval": [
+          null,
+          null
+        ],
+        "mean_initial_leg_net_return_pct_bounds": [
+          null,
+          null
+        ],
+        "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
+        "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
+      }
+    }
+  },
+  "probe_stop_risk_diagnostics": {
+    "selected_nonoverlapping_plans": 0,
+    "excluded_legacy_without_frozen_plan": 12,
+    "missing_complete_paths": 0
+  },
+  "return_scope": "horizon_stats是未扣成本的信号观察收益，不是账户净收益；probe_stop_risk为含假设成本的首次退出模拟"
 }
