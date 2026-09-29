@@ -1,13 +1,13 @@
 {
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
-  "generated_at_utc": "2026-09-29T01:05:12.376613+00:00",
-  "generated_at_sgt": "2026-09-29T09:05:12.376792+08:00",
+  "generated_at_utc": "2026-09-29T01:05:32.102056+00:00",
+  "generated_at_sgt": "2026-09-29T09:05:32.102223+08:00",
   "ticker": {
     "last": 158.63,
     "lastSz": 0.01,
     "askPx": 158.69,
-    "askSz": 4.2,
+    "askSz": 1.64,
     "bidPx": 158.63,
     "bidSz": 0.37,
     "open24h": 161.36,
@@ -15,7 +15,7 @@
     "low24h": 157.19,
     "vol24h": 3491.12,
     "volCcy24h": 3491.12,
-    "ts": 1790643911052
+    "ts": 1790643930065
   },
   "summary": {
     "regime": "mixed",
@@ -476,30 +476,25 @@
     "MACD histogram = 2*(DIFF-DEA)"
   ],
   "change": {
-    "material": true,
-    "reasons": [
-      "state:试仓候选->空头等待低风险确认",
-      "support_shift:158.6715->157.1713",
-      "resistance_shift:160.5976->158.6715",
-      "price_crossed_support_down:158.6715"
-    ],
+    "material": false,
+    "reasons": [],
     "level_tolerance": 0.63452,
-    "previous_generated_at": "2026-09-29T09:04:51.137098+08:00",
-    "previous_price": 158.71,
+    "previous_generated_at": "2026-09-29T09:05:12.376792+08:00",
+    "previous_price": 158.63,
     "current_price": 158.63
   },
   "performance_tracking": {
     "schema_version": 3,
-    "updated_at_utc": "2026-09-29T01:05:12.376613+00:00",
+    "updated_at_utc": "2026-09-29T01:05:32.102056+00:00",
     "instrument": "OPENAI-USDT-SWAP",
     "tracking_start_utc": "2026-09-28T03:08:00+00:00",
     "historical_rows_preserved": 13,
-    "decision_samples_raw": 24,
-    "decision_samples": 24,
-    "actionable_observations_raw": 5,
-    "actionable_samples": 5,
+    "decision_samples_raw": 25,
+    "decision_samples": 25,
+    "actionable_observations_raw": 6,
+    "actionable_samples": 6,
     "independent_signal_lifecycles": 2,
-    "duplicate_actionable_observations": 3,
+    "duplicate_actionable_observations": 4,
     "historical_evaluations_appended": 0,
     "horizon_stats": {
       "0.5": {
