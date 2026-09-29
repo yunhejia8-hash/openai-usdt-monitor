@@ -2,8 +2,8 @@
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
   "strategy_version": "risk_v9",
-  "generated_at_utc": "2026-09-29T09:31:44.281616+00:00",
-  "generated_at_sgt": "2026-09-29T17:31:44.281807+08:00",
+  "generated_at_utc": "2026-09-29T09:31:57.418436+00:00",
+  "generated_at_sgt": "2026-09-29T17:31:57.418592+08:00",
   "ticker": {
     "last": 160.27,
     "lastSz": 0.2,
@@ -16,7 +16,7 @@
     "low24h": 157.19,
     "vol24h": 3021.68,
     "volCcy24h": 3021.68,
-    "ts": 1790674302661
+    "ts": 1790674316070
   },
   "summary": {
     "regime": "mixed",
@@ -789,12 +789,12 @@
   },
   "performance_tracking": {
     "schema_version": 3,
-    "updated_at_utc": "2026-09-29T09:31:44.281616+00:00",
+    "updated_at_utc": "2026-09-29T09:31:57.418436+00:00",
     "instrument": "OPENAI-USDT-SWAP",
     "tracking_start_utc": "2026-09-28T03:08:00+00:00",
     "historical_rows_preserved": 13,
-    "decision_samples_raw": 32,
-    "decision_samples": 32,
+    "decision_samples_raw": 33,
+    "decision_samples": 33,
     "actionable_observations_raw": 6,
     "actionable_samples": 6,
     "independent_signal_lifecycles": 2,
@@ -948,20 +948,11 @@
     "return_scope": "horizon_stats是未扣成本的信号观察收益，不是账户净收益；probe_stop_risk为含假设成本的首次退出模拟"
   },
   "change": {
-    "material": true,
-    "reasons": [
-      "state:空头等待低风险确认->观望",
-      "buy_score_crossed_55:60.0->48.9",
-      "limit_order_zone_changed:[159.256475, 159.574976]->[159.638537, 159.963588]",
-      "confirmed_entry_zone_changed:[159.3361, 159.574976]->[159.7198, 159.963588]",
-      "limit_order_allowed:True->False",
-      "short_entry_state:SHORT_SETUP->WAIT",
-      "risk_warnings_changed:LONG_WEAK_VOLUME,SHORT_WEAK_VOLUME",
-      "invalidation_shift:158.1588->159.0937"
-    ],
+    "material": false,
+    "reasons": [],
     "level_tolerance": 0.64108,
-    "previous_generated_at": "2026-09-29T17:24:45.296677+08:00",
-    "previous_price": 160.34,
+    "previous_generated_at": "2026-09-29T17:31:44.281807+08:00",
+    "previous_price": 160.27,
     "current_price": 160.27
   }
 }
