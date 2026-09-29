@@ -158,14 +158,22 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
     previous=previous or {}
     prev_entry=previous.get("strategy",{}).get("low_risk_entry",{})
     prev15=previous.get("frames",{}).get("15m",{})
-    # 跌到旧支撑略下方时保留锚点，避免 levels 将它移入阻力后丢失回踩区域。
+    # 旧支撑仅在尚未发生明确角色翻转，或已经由收盘重新收复时才能继续作为支撑锚点。
+    # 不能出现 levels 已把旧支撑识别成阻力，而 long 模块仍拿它计算止损的状态分裂。
     old_support=prev_entry.get("support_anchor") or previous.get("strategy",{}).get("support_primary")
+    support_role_flip_invalidated=False
     if old_support is not None and abs(price-old_support)<=0.8*atr:
-        old_s=next((x for x in previous.get("levels",{}).get("supports",[]) if x["level"]==old_support),None)
-        if old_s is None and prev_entry.get("support_anchor_sources"):
-            old_s={"level":old_support,"sources":prev_entry["support_anchor_sources"]}
-        if old_s:
-            s=old_s; s_level=old_support
+        role_tol=max(1e-6,0.15*atr)
+        old_support_now_resistance=any(abs(x["level"]-old_support)<=role_tol for x in resistances)
+        old_support_reclaimed=(f15.get("close",-math.inf)>=old_support and price>=old_support)
+        if old_support_now_resistance and not old_support_reclaimed:
+            support_role_flip_invalidated=True
+        else:
+            old_s=next((x for x in previous.get("levels",{}).get("supports",[]) if abs(x["level"]-old_support)<=role_tol),None)
+            if old_s is None and prev_entry.get("support_anchor_sources"):
+                old_s={"level":old_support,"sources":prev_entry["support_anchor_sources"]}
+            if old_s:
+                s=old_s; s_level=old_support
 
     # 突破记录来自旧阻力；本根收盘突破仅登记，后续已收盘 K 线才可确认回踩。
     pending=prev_entry.get("breakout_level")
@@ -261,9 +269,18 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         limit_zone is not None and not decisive_break and ext<=3
         and support_quality>=38 and buy_score>=55 and probe_signal_count>=2
     )
-    # 试仓必须看到已收盘K线触及后收复支撑，且扣除成本后仍有足够空间。
-    probe_stop=(s_level-0.75*atr) if s_level is not None and valid_atr else None
+    # 止损先服从结构失效，再服从微观ATR缓冲。若存在更低一级有效支撑，
+    # 止损必须放到该结构位下方，而不是贴着当前支撑，避免正常噪声扫损。
+    micro_stop=(s_level-0.75*atr) if s_level is not None and valid_atr else None
+    structural_stop=(invalidation-0.20*atr) if invalidation is not None and valid_atr else None
+    stop_candidates=[x for x in (micro_stop,structural_stop) if x is not None and x<price]
+    probe_stop=min(stop_candidates) if stop_candidates else None
     probe_risk=(price-probe_stop) if probe_stop is not None else None
+    baseline_risk=0.75*atr if valid_atr else None
+    probe_size_multiplier=(min(1.0,baseline_risk/probe_risk)
+                           if baseline_risk is not None and probe_risk is not None and probe_risk>0 else 0.0)
+    probe_size_class=("small" if probe_size_multiplier>=0.80 else
+                      "reduced" if probe_size_multiplier>=0.50 else "micro")
     probe_reward=(r_level-price) if r_level is not None else None
     probe_rr=probe_reward/probe_risk if probe_risk is not None and probe_risk>0 and probe_reward is not None and probe_reward>0 else None
     probe_net=trade_risk.trade_math(price,probe_stop,r_level)
@@ -359,8 +376,13 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         "probe_stop_distance":round(probe_risk,6) if probe_risk is not None else None,
         "probe_rr":round(probe_rr,4) if probe_rr is not None else None,
         "probe_risk_pct_of_entry":round(100*probe_risk/price,4) if probe_risk is not None and price>0 else None,
-        "probe_position_size_class":"small",
+        "probe_position_size_class":probe_size_class,
+        "probe_size_multiplier":round(probe_size_multiplier,4),
+        "microstructure_stop":round(micro_stop,6) if micro_stop is not None else None,
+        "structural_stop":round(structural_stop,6) if structural_stop is not None else None,
+        "stop_basis":"STRUCTURE_BUFFER" if structural_stop is not None and probe_stop==structural_stop else "ATR_BUFFER",
         "invalidation_level":round(invalidation,6) if invalidation is not None else None,
+        "support_role_flip_invalidated":support_role_flip_invalidated,
         "risk_reward_ratio":round(rr,4) if rr is not None else None,
         "risk_reward_target":r_level,
         "has_position":has_position is True,
@@ -409,6 +431,8 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
             "probe_signal_count_min":2,
             "probe_near_support_atr":0.80,
             "probe_stop_below_support_atr":0.75,
+            "structural_stop_buffer_atr":0.20,
+            "probe_size_baseline_risk_atr":0.75,
             "probe_rr_min":1.0,
             "confirmed_buy_score_min":65,
             "confirmed_entry_score_pullback_min":70,
@@ -499,8 +523,18 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
 
     short_zone=[round(r_level-0.6*atr,6),round(r_level+0.2*atr,6)] if r_level is not None and valid_atr else None
     confirmed_zone=[round(r_level-0.6*atr,6),round(r_level,6)] if short_zone else None
-    short_stop=(r_level+0.75*atr) if r_level is not None and valid_atr else None
+    higher_resistances=[x["level"] for x in resistances if r_level is not None and x["level"]>r_level+0.2*atr]
+    short_invalidation=min(higher_resistances) if higher_resistances else (r_level+0.2*atr if r_level is not None else None)
+    micro_short_stop=(r_level+0.75*atr) if r_level is not None and valid_atr else None
+    structural_short_stop=(short_invalidation+0.20*atr) if short_invalidation is not None and valid_atr else None
+    short_stop_candidates=[x for x in (micro_short_stop,structural_short_stop) if x is not None and x>price]
+    short_stop=max(short_stop_candidates) if short_stop_candidates else None
     short_risk=(short_stop-price) if short_stop is not None else None
+    baseline_short_risk=0.75*atr if valid_atr else None
+    short_size_multiplier=(min(1.0,baseline_short_risk/short_risk)
+                           if baseline_short_risk is not None and short_risk is not None and short_risk>0 else 0.0)
+    short_size_class=("small" if short_size_multiplier>=0.80 else
+                      "reduced" if short_size_multiplier>=0.50 else "micro")
     short_reward=(price-s_level) if s_level is not None else None
     short_rr=short_reward/short_risk if short_risk is not None and short_risk>0 and short_reward is not None and short_reward>0 else None
     short_net=trade_risk.trade_math(price,short_stop,s_level,"short")
@@ -575,7 +609,12 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
         "short_stop_distance":round(short_risk,6) if short_risk is not None else None,
         "short_rr":round(short_rr,4) if short_rr is not None else None,
         "short_risk_pct_of_entry":round(100*short_risk/price,4) if short_risk is not None and price>0 else None,
-        "short_position_size_class":"small",
+        "short_position_size_class":short_size_class,
+        "short_size_multiplier":round(short_size_multiplier,4),
+        "microstructure_stop":round(micro_short_stop,6) if micro_short_stop is not None else None,
+        "structural_stop":round(structural_short_stop,6) if structural_short_stop is not None else None,
+        "stop_basis":"STRUCTURE_BUFFER" if structural_short_stop is not None and short_stop==structural_short_stop else "ATR_BUFFER",
+        "invalidation_level":round(short_invalidation,6) if short_invalidation is not None else None,
         "take_profit_target":s_level,
         "has_short_position":has_short_position is True,
         "hard_no_chase":hard_no_chase,
@@ -618,6 +657,8 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
             "short_add_entry_score_min":75,
             "short_probe_near_resistance_atr":0.80,
             "short_stop_above_resistance_atr":0.75,
+            "structural_stop_buffer_atr":0.20,
+            "probe_size_baseline_risk_atr":0.75,
             "short_probe_rr_min":1.0,
             "short_confirmed_rr_min":1.5,
             "short_add_rr_min":2.0

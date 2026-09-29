@@ -2,7 +2,7 @@
 import math
 from datetime import datetime, timezone
 
-VERSION = "risk_v9"
+VERSION = "risk_v10"
 BAR_MS = 900_000
 HORIZONS = (4, 24)
 MIN_SAMPLES = 30
@@ -47,10 +47,13 @@ def freeze_probe(snap, side, src):
     if not all(isinstance(v, (int, float)) and math.isfinite(v) for v in (a, anchor, stop, target)) or a <= 0:
         return None
     zone = [anchor, anchor+.8*a] if side == "long" else [anchor-.8*a, anchor]
+    size_key = "probe_size_multiplier" if side == "long" else "short_size_multiplier"
     return {"version": VERSION, "side": side, "stop": stop, "target": target,
             "entry_zone": zone, "atr": a, "ma20": f.get("ma20"),
             "regime_4h": snap["frames"]["4H"]["trend"],
             "entry_policy": "next_confirmed_15m_open_if_still_in_zone",
+            "size_multiplier": src.get(size_key, 1.0),
+            "stop_basis": src.get("stop_basis"),
             "fee_bps_per_side": 5, "slippage_bps_per_side": 5}
 
 
@@ -296,6 +299,11 @@ def assess_snapshot(snap, previous=None, position=None):
             codes.append("INSUFFICIENT_NET_REWARD")
         if net.get("cost_to_gross_risk", 0) >= .5:
             codes.append("COST_LARGE_RELATIVE_TO_STOP")
+        size_multiplier=e.get("probe_size_multiplier" if side == "long" else "short_size_multiplier",1.0)
+        if isinstance(size_multiplier,(int,float)) and size_multiplier < .80:
+            codes.append("STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE")
+        if side == "long" and e.get("support_role_flip_invalidated"):
+            codes.append("PRIOR_SUPPORT_ROLE_FLIP")
         anchor = e.get("support_anchor" if side == "long" else "resistance_anchor")
         token = f"{VERSION}:{side}:{snap['frames']['15m']['asof_ts']}:{anchor}:{e['entry_state']}"
         prior = previous.get("risk_assessment", {}).get("rhythm", {}).get(side, {})

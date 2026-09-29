@@ -65,7 +65,10 @@ class EntryTests(unittest.TestCase):
         self.assertLess(e["probe_stop"],s["ticker"]["last"])
         self.assertGreaterEqual(e["probe_rr"],1.0)
         self.assertGreater(e["probe_stop_distance"],0)
-        self.assertEqual(e["probe_position_size_class"],"small")
+        self.assertIn(e["probe_position_size_class"],("small","reduced","micro"))
+        self.assertGreater(e["probe_size_multiplier"],0)
+        self.assertLessEqual(e["probe_size_multiplier"],1)
+        self.assertLessEqual(e["probe_stop"],e["microstructure_stop"])
 
     def test_requested_zone_and_no_chase(self):
         e=entry(sample(164.95))
@@ -119,19 +122,42 @@ class EntryTests(unittest.TestCase):
         s=sample(); s["frames"]["15m"]["ma20_extension_atr"]=3.1
         self.assertEqual(monitor.low_risk_entry(164.55,s["frames"],s["levels"])["entry_state"],"WAIT")
 
-    def test_prior_support_survives_role_change(self):
+    def test_prior_support_role_flip_invalidates_anchor(self):
         prev=sample(); s=sample(164.45)
+        s["frames"]["15m"]["close"]=164.45
         s["levels"]["supports"].pop(0)
         s["levels"]["resistances"].insert(0,prev["levels"]["supports"][0])
         e=monitor.low_risk_entry(164.45,s["frames"],s["levels"],prev)
-        self.assertEqual(e["support_anchor"],164.49)
+        self.assertEqual(e["support_anchor"],163.338)
+        self.assertTrue(e["support_role_flip_invalidated"])
         self.assertNotIn(e["entry_state"],("PROBE","CONFIRMED","ADD"))
         s["strategy"]["low_risk_entry"]=e
         repeated=monitor.low_risk_entry(164.45,s["frames"],s["levels"],s)
-        self.assertEqual(repeated["support_anchor"],164.49)
+        self.assertEqual(repeated["support_anchor"],163.338)
         self.assertNotIn(repeated["entry_state"],("PROBE","CONFIRMED","ADD"))
-        e=monitor.low_risk_entry(164.40,s["frames"],s["levels"],prev)
+
+    def test_20260929_probe_uses_structural_stop_or_abstains(self):
+        s=sample(158.63,volume=0.9)
+        for f in s["frames"].values():
+            f.update(open=158.58,low=158.44,high=158.73,close=158.63,atr10=0.234208,
+                     ma20_extension_atr=0.5,supertrend_direction="up",
+                     macd_hist_okx=0.05,rsi6=55,structure={"label":"HH_HL"})
+        s["levels"]={
+            "supports":[
+                {"level":158.4862,"sources":["15m MA20","1H MA10"],"strength":2},
+                {"level":157.1477,"sources":["15m recent low","1H recent low","4H recent low"],"strength":3}
+            ],
+            "resistances":[{"level":159.165,"sources":["1H MA20"],"strength":1}]
+        }
+        e=monitor.low_risk_entry(158.63,s["frames"],s["levels"])
+        self.assertAlmostEqual(e["microstructure_stop"],158.310544,places=5)
+        self.assertLess(e["structural_stop"],157.1477)
+        self.assertEqual(e["probe_stop"],e["structural_stop"])
+        self.assertEqual(e["stop_basis"],"STRUCTURE_BUFFER")
+        self.assertEqual(e["probe_position_size_class"],"micro")
+        self.assertLess(e["probe_size_multiplier"],0.2)
         self.assertEqual(e["entry_state"],"WAIT")
+        self.assertLess(e["net_probe"]["net_rr"],1.0)
 
     def test_breakout_requires_later_closed_retest(self):
         prev=sample(); prev["frames"]["15m"].update(asof_ts=900000,close=164.40)
@@ -219,7 +245,10 @@ class EntryTests(unittest.TestCase):
         self.assertEqual(e["entry_state"],"SHORT_PROBE")
         self.assertGreater(e["short_stop"],s["ticker"]["last"])
         self.assertGreaterEqual(e["short_rr"],1.0)
-        self.assertEqual(e["short_position_size_class"],"small")
+        self.assertIn(e["short_position_size_class"],("small","reduced","micro"))
+        self.assertGreater(e["short_size_multiplier"],0)
+        self.assertLessEqual(e["short_size_multiplier"],1)
+        self.assertGreaterEqual(e["short_stop"],e["microstructure_stop"])
 
     def test_short_wait_does_not_follow_long_wait_automatically(self):
         s=sample()
@@ -230,8 +259,10 @@ class EntryTests(unittest.TestCase):
     def test_short_confirmed_and_add_need_bearish_confirmation(self):
         s=short_sample()
         self.assertEqual(s["strategy"]["low_risk_short"]["entry_state"],"SHORT_CONFIRMED")
-        s=short_sample(has_short_position=True)
-        self.assertEqual(s["strategy"]["low_risk_short"]["entry_state"],"SHORT_ADD")
+        s=short_sample()
+        s["levels"]["supports"][0]["level"]=160.5
+        add=monitor.low_risk_short(s["ticker"]["last"],s["frames"],s["levels"],has_short_position=True)
+        self.assertEqual(add["entry_state"],"SHORT_ADD")
         s=short_sample()
         s["frames"]["15m"]["supertrend_direction"]="up"
         e=monitor.low_risk_short(s["ticker"]["last"],s["frames"],s["levels"])
