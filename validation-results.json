@@ -1,0 +1,270 @@
+{
+  "data_sha256": "e0ea64ebf92f9f0bbdd06b7b45db84bd5717dce8634ffa494648b7b43e82ca2e",
+  "first_15m_open_utc": "2026-08-22T16:15:00+00:00",
+  "last_15m_close_utc": "2026-09-24T04:00:00+00:00",
+  "scope": "30分钟收盘采样、下一根开盘重验、只比较PROBE首次退出、24h最长持有；无账户仓位或杠杆乘数",
+  "limitations": [
+    "同一历史区间已用于开发，不是样本外证明",
+    "不模拟25%/70%和尾仓全周期",
+    "同根双触及按止损计净收益；概率保留区间",
+    "无资金费、精确强平或订单排队；日块bootstrap仍不能消除跨日相关性"
+  ],
+  "baseline": {
+    "all": {
+      "samples": 92,
+      "outcomes": {
+        "stop": 57,
+        "target": 34,
+        "ambiguous": 1
+      },
+      "stop_first_rate_bounds": [
+        0.6195652173913043,
+        0.6304347826086957
+      ],
+      "cost_scenarios": {
+        "2": {
+          "fee_bps_per_side": 2,
+          "slippage_bps_per_side": 2,
+          "mean_net_initial_leg_return_pct": -0.03216503764098984,
+          "mean_net_return_day_bootstrap_95": [
+            -0.14172297823518426,
+            0.07498384396960707
+          ],
+          "net_positive_fraction": 0.3695652173913043
+        },
+        "5": {
+          "fee_bps_per_side": 5,
+          "slippage_bps_per_side": 5,
+          "mean_net_initial_leg_return_pct": -0.15218097798233912,
+          "mean_net_return_day_bootstrap_95": [
+            -0.26169864393360115,
+            -0.045045333948293825
+          ],
+          "net_positive_fraction": 0.3695652173913043
+        },
+        "10": {
+          "fee_bps_per_side": 10,
+          "slippage_bps_per_side": 10,
+          "mean_net_initial_leg_return_pct": -0.35220754521792125,
+          "mean_net_return_day_bootstrap_95": [
+            -0.46165808676429604,
+            -0.24509396381146195
+          ],
+          "net_positive_fraction": 0.31521739130434784
+        }
+      }
+    },
+    "long": {
+      "samples": 42,
+      "outcomes": {
+        "stop": 23,
+        "target": 18,
+        "ambiguous": 1
+      },
+      "stop_first_rate_bounds": [
+        0.5476190476190477,
+        0.5714285714285714
+      ],
+      "cost_scenarios": {
+        "2": {
+          "fee_bps_per_side": 2,
+          "slippage_bps_per_side": 2,
+          "mean_net_initial_leg_return_pct": 0.001467160629739092,
+          "mean_net_return_day_bootstrap_95": [
+            -0.16468216708188615,
+            0.17078080068672521
+          ],
+          "net_positive_fraction": 0.42857142857142855
+        },
+        "5": {
+          "fee_bps_per_side": 5,
+          "slippage_bps_per_side": 5,
+          "mean_net_initial_leg_return_pct": -0.11858173922658127,
+          "mean_net_return_day_bootstrap_95": [
+            -0.28463133744978414,
+            0.05063027199483646
+          ],
+          "net_positive_fraction": 0.42857142857142855
+        },
+        "10": {
+          "fee_bps_per_side": 10,
+          "slippage_bps_per_side": 10,
+          "mean_net_initial_leg_return_pct": -0.31866323898711524,
+          "mean_net_return_day_bootstrap_95": [
+            -0.4845466213962809,
+            -0.14962060915831152
+          ],
+          "net_positive_fraction": 0.3333333333333333
+        }
+      }
+    },
+    "short": {
+      "samples": 50,
+      "outcomes": {
+        "target": 16,
+        "stop": 34
+      },
+      "stop_first_rate_bounds": [
+        0.68,
+        0.68
+      ],
+      "cost_scenarios": {
+        "2": {
+          "fee_bps_per_side": 2,
+          "slippage_bps_per_side": 2,
+          "mean_net_initial_leg_return_pct": -0.06041608418840214,
+          "mean_net_return_day_bootstrap_95": [
+            -0.19163389427001035,
+            0.06273206209449825
+          ],
+          "net_positive_fraction": 0.32
+        },
+        "5": {
+          "fee_bps_per_side": 5,
+          "slippage_bps_per_side": 5,
+          "mean_net_initial_leg_return_pct": -0.1804043385371757,
+          "mean_net_return_day_bootstrap_95": [
+            -0.3117008478251503,
+            -0.05718233291024317
+          ],
+          "net_positive_fraction": 0.32
+        },
+        "10": {
+          "fee_bps_per_side": 10,
+          "slippage_bps_per_side": 10,
+          "mean_net_initial_leg_return_pct": -0.3803847624517982,
+          "mean_net_return_day_bootstrap_95": [
+            -0.5118124370837168,
+            -0.2570396579181455
+          ],
+          "net_positive_fraction": 0.3
+        }
+      }
+    },
+    "long_state_counts": {
+      "WAIT": 1190,
+      "SETUP": 201,
+      "PROBE": 91
+    }
+  },
+  "risk_v9": {
+    "all": {
+      "samples": 23,
+      "outcomes": {
+        "stop": 20,
+        "target": 3
+      },
+      "stop_first_rate_bounds": [
+        0.8695652173913043,
+        0.8695652173913043
+      ],
+      "cost_scenarios": {
+        "2": {
+          "fee_bps_per_side": 2,
+          "slippage_bps_per_side": 2,
+          "mean_net_initial_leg_return_pct": -0.2013043415353458,
+          "mean_net_return_day_bootstrap_95": [
+            -0.3284820069212001,
+            -0.0763569708833354
+          ],
+          "net_positive_fraction": 0.13043478260869565
+        },
+        "5": {
+          "fee_bps_per_side": 5,
+          "slippage_bps_per_side": 5,
+          "mean_net_initial_leg_return_pct": -0.32137709503886563,
+          "mean_net_return_day_bootstrap_95": [
+            -0.44863103651351594,
+            -0.19635478593984276
+          ],
+          "net_positive_fraction": 0.13043478260869565
+        },
+        "10": {
+          "fee_bps_per_side": 10,
+          "slippage_bps_per_side": 10,
+          "mean_net_initial_leg_return_pct": -0.5214983508780653,
+          "mean_net_return_day_bootstrap_95": [
+            -0.6488794191673757,
+            -0.3963511443673551
+          ],
+          "net_positive_fraction": 0.13043478260869565
+        }
+      }
+    },
+    "long": {
+      "samples": 0,
+      "outcomes": {},
+      "stop_first_rate_bounds": null,
+      "cost_scenarios": {
+        "2": {
+          "fee_bps_per_side": 2,
+          "slippage_bps_per_side": 2,
+          "mean_net_initial_leg_return_pct": null,
+          "mean_net_return_day_bootstrap_95": null,
+          "net_positive_fraction": null
+        },
+        "5": {
+          "fee_bps_per_side": 5,
+          "slippage_bps_per_side": 5,
+          "mean_net_initial_leg_return_pct": null,
+          "mean_net_return_day_bootstrap_95": null,
+          "net_positive_fraction": null
+        },
+        "10": {
+          "fee_bps_per_side": 10,
+          "slippage_bps_per_side": 10,
+          "mean_net_initial_leg_return_pct": null,
+          "mean_net_return_day_bootstrap_95": null,
+          "net_positive_fraction": null
+        }
+      }
+    },
+    "short": {
+      "samples": 23,
+      "outcomes": {
+        "stop": 20,
+        "target": 3
+      },
+      "stop_first_rate_bounds": [
+        0.8695652173913043,
+        0.8695652173913043
+      ],
+      "cost_scenarios": {
+        "2": {
+          "fee_bps_per_side": 2,
+          "slippage_bps_per_side": 2,
+          "mean_net_initial_leg_return_pct": -0.2013043415353458,
+          "mean_net_return_day_bootstrap_95": [
+            -0.3284820069212001,
+            -0.0763569708833354
+          ],
+          "net_positive_fraction": 0.13043478260869565
+        },
+        "5": {
+          "fee_bps_per_side": 5,
+          "slippage_bps_per_side": 5,
+          "mean_net_initial_leg_return_pct": -0.32137709503886563,
+          "mean_net_return_day_bootstrap_95": [
+            -0.44863103651351594,
+            -0.19635478593984276
+          ],
+          "net_positive_fraction": 0.13043478260869565
+        },
+        "10": {
+          "fee_bps_per_side": 10,
+          "slippage_bps_per_side": 10,
+          "mean_net_initial_leg_return_pct": -0.5214983508780653,
+          "mean_net_return_day_bootstrap_95": [
+            -0.6488794191673757,
+            -0.3963511443673551
+          ],
+          "net_positive_fraction": 0.13043478260869565
+        }
+      }
+    },
+    "long_state_counts": {
+      "WAIT": 1196,
+      "SETUP": 286
+    }
+  }
+}

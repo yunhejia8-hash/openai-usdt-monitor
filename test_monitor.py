@@ -2,6 +2,7 @@ import copy
 import json
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -72,7 +73,8 @@ class EntryTests(unittest.TestCase):
         self.assertTrue(e["limit_order_allowed"])
         self.assertLessEqual(e["limit_order_zone"][0],164.45)
         self.assertGreaterEqual(e["limit_order_zone"][1],164.65)
-        for price in (164.45,164.55,164.65):
+        self.assertNotIn(entry(sample(164.45,volume=0.9))["entry_state"],("PROBE","CONFIRMED","ADD"))
+        for price in (164.55,164.65):
             self.assertEqual(entry(sample(price,volume=0.9))["entry_state"],"PROBE")
 
     def test_distance_is_continuous_across_old_gate(self):
@@ -102,7 +104,7 @@ class EntryTests(unittest.TestCase):
             self.assertNotIn(e["entry_state"],("CONFIRMED","ADD"))
 
     def test_add_has_stricter_rr(self):
-        s=sample(); s["levels"]["resistances"][0]["level"]=166.6
+        s=sample(); s["levels"]["resistances"][0]["level"]=167.3
         e=monitor.low_risk_entry(164.55,s["frames"],s["levels"],has_position=True)
         self.assertEqual(e["entry_state"],"CONFIRMED")
 
@@ -123,11 +125,11 @@ class EntryTests(unittest.TestCase):
         s["levels"]["resistances"].insert(0,prev["levels"]["supports"][0])
         e=monitor.low_risk_entry(164.45,s["frames"],s["levels"],prev)
         self.assertEqual(e["support_anchor"],164.49)
-        self.assertEqual(e["entry_state"],"PROBE")
+        self.assertNotIn(e["entry_state"],("PROBE","CONFIRMED","ADD"))
         s["strategy"]["low_risk_entry"]=e
         repeated=monitor.low_risk_entry(164.45,s["frames"],s["levels"],s)
         self.assertEqual(repeated["support_anchor"],164.49)
-        self.assertEqual(repeated["entry_state"],"PROBE")
+        self.assertNotIn(repeated["entry_state"],("PROBE","CONFIRMED","ADD"))
         e=monitor.low_risk_entry(164.40,s["frames"],s["levels"],prev)
         self.assertEqual(e["entry_state"],"WAIT")
 
@@ -136,14 +138,22 @@ class EntryTests(unittest.TestCase):
         prev["levels"]["resistances"].insert(0,{"level":164.49,"sources":["1H MA20"]})
         first=sample(previous=prev)
         self.assertEqual(entry(first)["breakout_level"],164.49)
-        self.assertNotIn(entry(first)["entry_state"],("CONFIRMED","ADD"))
+        self.assertNotIn(entry(first)["entry_state"],("PROBE","CONFIRMED","ADD"))
         same=sample(previous=first)
-        self.assertNotIn(entry(same)["entry_state"],("CONFIRMED","ADD"))
+        self.assertNotIn(entry(same)["entry_state"],("PROBE","CONFIRMED","ADD"))
         later=sample(); later["frames"]["15m"]["asof_ts"]=2700000
         e=monitor.low_risk_entry(164.55,later["frames"],later["levels"],first)
         self.assertTrue(e["rules"]["breakout_retest_candidate"])
         self.assertEqual(e["entry_mode"],"BREAKOUT_RETEST")
         self.assertEqual(e["entry_state"],"CONFIRMED")
+
+    def test_distant_broken_support_does_not_pin_new_setup(self):
+        prev=sample()
+        prev["strategy"]["low_risk_entry"]["support_anchor"]=170.0
+        prev["strategy"]["low_risk_entry"]["support_anchor_sources"]=["1H MA20"]
+        e=entry(sample(volume=0.9,previous=prev))
+        self.assertEqual(e["support_anchor"],164.49)
+        self.assertEqual(e["entry_state"],"PROBE")
 
     def test_change_thresholds_both_directions_and_zone_tolerance(self):
         s=sample()
@@ -170,6 +180,10 @@ class EntryTests(unittest.TestCase):
 
     def test_main_writes_json_html_and_loads_previous(self):
         s=sample()
+        now_ms=int(datetime.now(timezone.utc).timestamp()*1000)
+        s["ticker"]["ts"]=now_ms
+        for tf,duration in (("15m",900000),("1H",3600000),("4H",14400000)):
+            s["frames"][tf]["asof_ts"]=(now_ms//duration-1)*duration
         for f in s["frames"].values():
             for key in ("ma10","ma20","boll_upper","boll_lower","recent_high","recent_low"):
                 f[key]=164.49
@@ -302,3 +316,4 @@ class EntryTests(unittest.TestCase):
 
 if __name__=="__main__":
     unittest.main()
+

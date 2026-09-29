@@ -17,6 +17,8 @@ on:
     paths:
       - "monitor.py"
       - "test_monitor.py"
+      - "trade_risk.py"
+      - "test_trade_risk.py"
       - "requirements.txt"
       - "workflow_health.py"
       - "test_health_watchdog.py"
@@ -87,12 +89,14 @@ jobs:
         if: steps.freshness.outputs.skip != 'true'
         run: |
           python -m unittest -v
-          python -m py_compile monitor.py workflow_health.py watchdog.py test_monitor.py test_health_watchdog.py
+          python -m py_compile monitor.py trade_risk.py replay_probe_risk.py workflow_health.py watchdog.py test_monitor.py test_trade_risk.py test_health_watchdog.py
 
       - name: Fetch OKX market data
         if: steps.freshness.outputs.skip != 'true'
         env:
           HAS_POSITION: ${{ vars.HAS_POSITION || 'false' }}
+          HAS_SHORT_POSITION: ${{ vars.HAS_SHORT_POSITION || 'false' }}
+          POSITION_CONTEXT_JSON: ${{ secrets.POSITION_CONTEXT_JSON }}
         shell: bash
         run: |
           set -e
@@ -164,3 +168,4 @@ jobs:
 # - 10-minute probes target an effective ~30-minute snapshot cadence
 # - every observed schedule probe updates schedule-continuity telemetry, even when market refresh is skipped
 # - watchdog.yml is a separate stale-data recovery path and dispatches this workflow only when needed
+

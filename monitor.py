@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 import requests
+import trade_risk
 
 INST_ID="OPENAI-USDT-SWAP"
 BASE="https://www.okx.com"
@@ -184,7 +185,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         s={"level":pending,"sources":["15m former resistance","15m retest"],"strength":2}
     distance=(price-s_level)/atr if valid_atr and s_level is not None else None
     location=clamp(100-50*abs(distance)) if distance is not None else 0.0
-    next_res=[x for x in resistances if x["level"]>max(price,s_level or price)]
+    next_res=[x for x in resistances if x["level"]>price]
     r=next_res[0] if next_res else None
     r_level=r["level"] if r else None
     lower_supports=[x["level"] for x in supports if s_level is not None and x["level"]<s_level-0.2*atr]
@@ -194,7 +195,8 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
     risk=price-invalidation if invalidation is not None else None
     reward=r_level-price if r_level is not None else None
     rr=reward/risk if risk is not None and risk>0 and reward is not None and reward>0 else None
-    rr_ok=rr is not None and rr>=1.5
+    net_confirmed=trade_risk.trade_math(price,invalidation,r_level)
+    rr_ok=rr is not None and rr>=1.5 and net_confirmed["valid"] and net_confirmed["net_rr"]>=1.5
 
     # Direction score: every component is normalized so higher = more bullish.
     trend=50
@@ -246,7 +248,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
     probe_signal_count=sum(bool(x) for x in (confirm_st,macd15_pos,probe_vol,rsi_probe_ok))
 
     # Anti-chase penalty: extended price cannot be rescued by bullish indicators.
-    ext=float(f15.get("ma20_extension_atr",0))
+    ext=(price-f15["ma20"])/atr if valid_atr and "ma20" in f15 else float(f15.get("ma20_extension_atr",0))
     chase_penalty=25 if ext>2 else 0
     hard_no_chase=not valid_atr or distance is None or distance>1.2 or ext>3
     entry_score=clamp(
@@ -254,22 +256,23 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         +.10*clamp(momentum)+.10*volume-chase_penalty
     )
 
-    # 预挂许可独立于当前入场状态；轻微跌到支撑下方允许小仓候选。
+    # 兼容字段仅表示预备观察区；实际入场仍须通过确认与净收益风险比。
     limit_allowed=(
         limit_zone is not None and not decisive_break and ext<=3
         and support_quality>=38 and buy_score>=55 and probe_signal_count>=2
     )
-    # PROBE v5: intentionally accepts lower confirmation in exchange for small size + mandatory tight stop.
-    # It must still be near a valid support and must not be a decisive breakdown.
+    # 试仓必须看到已收盘K线触及后收复支撑，且扣除成本后仍有足够空间。
     probe_stop=(s_level-0.75*atr) if s_level is not None and valid_atr else None
     probe_risk=(price-probe_stop) if probe_stop is not None else None
     probe_reward=(r_level-price) if r_level is not None else None
     probe_rr=probe_reward/probe_risk if probe_risk is not None and probe_risk>0 and probe_reward is not None and probe_reward>0 else None
+    probe_net=trade_risk.trade_math(price,probe_stop,r_level)
+    probe_reclaim=bool(s_level is not None and f15.get("low",math.inf)<=s_level<=f15["close"])
     probe_candidate=(
-        limit_allowed and not decisive_break
-        and near_support_probe and location>=55 and support_quality>=38
-        and buy_score>=52 and entry_score>=52
-        and probe_signal_count>=1
+        limit_allowed and not decisive_break and reclaimed and probe_reclaim and not hard_no_chase
+        and near_support_probe and location>=60 and support_quality>=38
+        and buy_score>=55 and entry_score>=58
+        and probe_signal_count>=2 and probe_net["valid"] and probe_net["net_rr"]>=1.0
         and probe_stop is not None and probe_stop<price
         and probe_rr is not None and probe_rr>=1.0
     )
@@ -288,7 +291,9 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
                       and location>=70 and confirm_st and hl and confirm_vol and macd15_pos
                       and buy_score>=65 and entry_score>=68 and ext<=2 and rr_ok and not hard_no_chase)
     # 已登记突破时必须等下一根，不能从普通回踩分支绕过首次突破限制。
-    if pending is not None and (breakout_ts==f15["asof_ts"] or (s_level==pending and not retest_candidate)):
+    if pending is not None and not retest_candidate:
+        # 首次突破和尚未完成回踩期间，不能借试仓分支直接追入。
+        probe_candidate=False
         pullback_confirmed=False
 
     confirmed_candidate=pullback_confirmed or retest_candidate
@@ -303,6 +308,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         and (f1["macd_hist_okx"]>0 or f1["trend"]=="bullish")
         and buy_score>=72 and entry_score>=75
         and ext<=1.5 and location>=70 and rr is not None and rr>=2.0
+        and net_confirmed["valid"] and net_confirmed["net_rr"]>=2.0
     )
 
     # SETUP is intentionally non-actionable: it identifies near-qualified opportunities
@@ -347,7 +353,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         "limit_order_zone":limit_zone,
         "confirmed_entry_zone":confirmed_zone,
         "limit_order_allowed":limit_allowed,
-        "limit_order_note":"PROBE仅允许小仓试错，必须同步设置probe_stop；未形成CONFIRMED前不得按主仓处理",
+        "limit_order_note":"区域仅供观察，必须entry_state=PROBE且通过风险检查才是小仓候选；同步维护probe_stop，不等同正式买入",
         "probe_entry_price":round(price,6) if probe_candidate else None,
         "probe_stop":round(probe_stop,6) if probe_stop is not None else None,
         "probe_stop_distance":round(probe_risk,6) if probe_risk is not None else None,
@@ -364,6 +370,10 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
         "ma20_extension_atr":round(ext,3),
         "chase_penalty":chase_penalty,
         "probe_signal_count":probe_signal_count,
+        "net_probe":probe_net,
+        "net_confirmed":net_confirmed,
+        "cost_sensitivity":[trade_risk.trade_math(price,probe_stop,r_level,fee_bps=b,slippage_bps=b) for b in (2,5,10)],
+        "first_breakout_wait":pending is not None and not retest_candidate,
         "rules":{
             "near_support":near_support,
             "valid_atr":valid_atr,
@@ -373,6 +383,7 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
             "near_support_setup":near_support_setup,
             "decisive_break":decisive_break,
             "reclaimed_support":reclaimed,
+            "confirmed_candle_reclaim":probe_reclaim,
             "15m_HL":hl,
             "15m_supertrend_up":confirm_st,
             "15m_macd_positive":macd15_pos,
@@ -391,11 +402,11 @@ def low_risk_entry(price,frames,lvls,previous=None,has_position=False):
             "setup_location_min":45,
             "setup_near_support_atr":1.10,
             "setup_rr_min":0.8,
-            "probe_buy_score_min":52,
-            "probe_entry_score_min":52,
-            "probe_location_min":55,
+            "probe_buy_score_min":55,
+            "probe_entry_score_min":58,
+            "probe_location_min":60,
             "probe_support_quality_min":38,
-            "probe_signal_count_min":1,
+            "probe_signal_count_min":2,
             "probe_near_support_atr":0.80,
             "probe_stop_below_support_atr":0.75,
             "probe_rr_min":1.0,
@@ -478,7 +489,7 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
     rsi_probe_ok=25<=float(f15["rsi6"])<=55
     probe_signal_count=sum(bool(x) for x in (confirm_st,macd15_neg,probe_vol,rsi_probe_ok))
 
-    ext=float(f15.get("ma20_extension_atr",0))
+    ext=(price-f15["ma20"])/atr if valid_atr and "ma20" in f15 else float(f15.get("ma20_extension_atr",0))
     chase_penalty=25 if ext<-2 else 0
     hard_no_chase=not valid_atr or distance is None or distance>1.2 or ext<-3
     entry_score=clamp(
@@ -492,16 +503,19 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
     short_risk=(short_stop-price) if short_stop is not None else None
     short_reward=(price-s_level) if s_level is not None else None
     short_rr=short_reward/short_risk if short_risk is not None and short_risk>0 and short_reward is not None and short_reward>0 else None
-    rr_ok=short_rr is not None and short_rr>=1.5
+    short_net=trade_risk.trade_math(price,short_stop,s_level,"short")
+    rr_ok=short_rr is not None and short_rr>=1.5 and short_net["valid"] and short_net["net_rr"]>=1.5
 
     limit_allowed=(
         short_zone is not None and not decisive_breakout and ext>=-3
         and resistance_quality>=38 and sell_score>=55 and probe_signal_count>=2
     )
     probe_candidate=(
-        limit_allowed and near_resistance_probe and location>=55
-        and resistance_quality>=38 and sell_score>=52 and entry_score>=52
-        and probe_signal_count>=1 and short_stop is not None and short_stop>price
+        limit_allowed and near_resistance_probe and location>=60 and rejected and not hard_no_chase
+        and f15.get("high",-math.inf)>=r_level>=f15["close"]
+        and resistance_quality>=38 and sell_score>=55 and entry_score>=58
+        and probe_signal_count>=2 and short_net["valid"] and short_net["net_rr"]>=1.0
+        and short_stop is not None and short_stop>price
         and short_rr is not None and short_rr>=1.0
     )
 
@@ -520,6 +534,7 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
         and (f1["macd_hist_okx"]<0 or f1["trend"]=="bearish")
         and sell_score>=72 and entry_score>=75 and ext>=-1.5
         and location>=70 and short_rr is not None and short_rr>=2.0
+        and short_net["valid"] and short_net["net_rr"]>=2.0
     )
 
     # SHORT_SETUP mirrors long SETUP: visible to monitoring, never actionable by itself.
@@ -567,6 +582,9 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
         "ma20_extension_atr":round(ext,3),
         "chase_penalty":chase_penalty,
         "probe_signal_count":probe_signal_count,
+        "net_probe":short_net,
+        "net_confirmed":short_net,
+        "cost_sensitivity":[trade_risk.trade_math(price,short_stop,s_level,"short",fee_bps=b,slippage_bps=b) for b in (2,5,10)],
         "rules":{
             "near_resistance":near_resistance,
             "near_resistance_probe":near_resistance_probe,
@@ -591,9 +609,9 @@ def low_risk_short(price,frames,lvls,has_short_position=False):
             "short_setup_location_min":45,
             "short_setup_near_resistance_atr":1.10,
             "short_setup_rr_min":0.8,
-            "short_probe_sell_score_min":52,
-            "short_probe_entry_score_min":52,
-            "short_probe_location_min":55,
+            "short_probe_sell_score_min":55,
+            "short_probe_entry_score_min":58,
+            "short_probe_location_min":60,
             "short_confirmed_sell_score_min":65,
             "short_confirmed_entry_score_min":70,
             "short_add_sell_score_min":72,
@@ -627,24 +645,25 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False, has_s
 
     entry_state=entry["entry_state"]
     short_state=short_entry["entry_state"]
-    if short_state=="SHORT_ADD":
-        state="空头加仓候选"
-    elif short_state=="SHORT_CONFIRMED":
-        state="正式做空候选"
-    elif short_state=="SHORT_PROBE":
-        state="空头试仓候选"
-    elif short_state=="SHORT_SETUP":
-        state="空头等待低风险确认"
-    elif entry_state=="ADD":
-        state="加仓候选"
-    elif entry_state=="CONFIRMED":
-        state="正式买入候选"
-    elif entry_state=="PROBE":
-        state="试仓候选"
+    long_active=entry_state in ("PROBE","CONFIRMED","ADD")
+    short_active=short_state in ("SHORT_PROBE","SHORT_CONFIRMED","SHORT_ADD")
+    conflict=long_active and short_active
+    if conflict:
+        entry["blocked_candidate_state"]=entry_state
+        short_entry["blocked_candidate_state"]=short_state
+        entry["entry_state"]=short_entry["entry_state"]="WAIT"
+        entry_state=short_state="WAIT"
+        state="多空信号冲突，观望"
+    elif long_active:
+        state={"PROBE":"试仓候选","CONFIRMED":"正式买入候选","ADD":"加仓候选"}[entry_state]
+    elif short_active:
+        state={"SHORT_PROBE":"空头试仓候选","SHORT_CONFIRMED":"正式做空候选","SHORT_ADD":"空头加仓候选"}[short_state]
+    elif entry_state=="SETUP" and short_state=="SHORT_SETUP":
+        state="多空均待确认"
     elif entry_state=="SETUP":
         state="等待低风险确认"
-    elif bias=="bearish" and s1 is not None and price<s1:
-        state="减仓"
+    elif short_state=="SHORT_SETUP":
+        state="空头等待低风险确认"
     else:
         state="观望"
 
@@ -653,6 +672,7 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False, has_s
 
     return {
         "state":state,
+        "signal_conflict":conflict,
         "bias":bias,
         "score":score,
         "support_primary":s1,
@@ -724,7 +744,8 @@ def strategy_state(price, frames, lvls, previous=None, has_position=False, has_s
             "15m_structure_"+f15["structure"]["label"],
             "1H_MACD_POS" if f1["macd_hist_okx"]>0 else "1H_MACD_NEG",
             "ENTRY_"+entry_state,
-            "SHORT_ENTRY_"+short_state
+            "SHORT_ENTRY_"+short_state,
+            "DUAL_SIDE_CONFLICT" if conflict else "NO_DIRECTION_CONFLICT"
         ]
     }
 
@@ -776,6 +797,24 @@ def detect_material_change(previous,current):
             reasons.append(f"{key}:{old_entry.get(key)}->{new_entry.get(key)}")
     if prev_s.get("bias")!=cur_s.get("bias"):
         reasons.append(f"bias:{prev_s.get('bias')}->{cur_s.get('bias')}")
+
+    for key in ("entry_state","hard_no_chase","short_order_allowed"):
+        old=prev_s.get("low_risk_short",{}).get(key)
+        new=cur_s.get("low_risk_short",{}).get(key)
+        if old!=new: reasons.append(f"short_{key}:{old}->{new}")
+    old_warnings=set(previous.get("risk_assessment",{}).get("warnings",[]))
+    new_warnings=set(current.get("risk_assessment",{}).get("warnings",[]))
+    if old_warnings!=new_warnings:
+        reasons.append("risk_warnings_changed:"+",".join(sorted(old_warnings^new_warnings)))
+    for key in ("status","action"):
+        old=previous.get("execution_plan",{}).get(key)
+        new=current.get("execution_plan",{}).get(key)
+        if old!=new: reasons.append(f"exit_{key}:{old}->{new}")
+    for key in ("proposed_stop","proposed_tp1","proposed_tp2"):
+        old=previous.get("execution_plan",{}).get(key)
+        new=current.get("execution_plan",{}).get(key)
+        if isinstance(old,(int,float)) and isinstance(new,(int,float)) and abs(old-new)>=zone_tol:
+            reasons.append(f"{key}_changed:{old}->{new}")
 
     for tf in ("1H","4H"):
         prev_trend=previous.get("frames",{}).get(tf,{}).get("trend")
@@ -950,7 +989,9 @@ def update_performance_tracking(snap,c15=None):
         "timeframe_trends":snap.get("summary",{}).get("timeframe_trends"),"buy_score":long_e.get("buy_score"),"sell_score":short_e.get("sell_score"),
         "entry_score":src.get("entry_score"),"location_score":src.get("location_score"),"risk_reward_ratio":structural_rr,
         "structural_rr":structural_rr,"tight_stop_rr":tight_stop_rr,"entry_mode":src.get("entry_mode"),
-        "mfe_abs":0.0,"mae_abs":0.0,"mfe_pct":0.0,"mae_pct":0.0,"checkpoint_returns_pct":{},"data_quality":"pending confirmed 15m candle backfill"}
+        "mfe_abs":0.0,"mae_abs":0.0,"mfe_pct":0.0,"mae_pct":0.0,"checkpoint_returns_pct":{},"data_quality":"pending confirmed 15m candle backfill",
+        "strategy_version":trade_risk.VERSION,
+        "probe_plan":trade_risk.freeze_probe(snap,side,src) if state in ("PROBE","SHORT_PROBE") else None}
     is_new=not any(x.get("generated_at_utc")==record["generated_at_utc"] for x in rows)
     cutoff=_parse_iso(TRACKING_START_UTC)
     historical_rows=[dict(x) for x in rows if _parse_iso(x["generated_at_utc"])<cutoff]
@@ -1012,6 +1053,12 @@ def update_performance_tracking(snap,c15=None):
         "MFE/MAE and horizon returns use confirmed 15m candle backfill when available.",
         "tight_stop_rr and structural_rr are stored separately; do not compare them as the same risk definition.",
         "Do not optimize thresholds from small samples; validate candidate changes out of sample."]}
+    evaluations=_read_signal_evaluations()
+    fresh_events,diagnostics=trade_risk.probe_outcomes(rows+([record] if is_new else []),c15 or [],snap["generated_at_utc"],evaluations)
+    for event in fresh_events: _append_signal_evaluation(event)
+    summary["probe_stop_risk"]={side:trade_risk.stop_statistics(evaluations+fresh_events,snap["generated_at_utc"],side,snap["frames"]["4H"]["trend"]) for side in ("long","short")}
+    summary["probe_stop_risk_diagnostics"]=diagnostics
+    summary["return_scope"]="horizon_stats是未扣成本的信号观察收益，不是账户净收益；probe_stop_risk为含假设成本的首次退出模拟"
     PERFORMANCE_PATH.write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding="utf-8"); return summary
 
 def main():
@@ -1022,23 +1069,41 @@ def main():
         frames[tf]=metrics(raw_frames[tf],recent)
     lvls=levels(float(t["last"]),frames)
     snap={
-        "schema_version":8,"instrument":INST_ID,
+        "schema_version":8,"instrument":INST_ID,"strategy_version":trade_risk.VERSION,
         "generated_at_utc":datetime.now(timezone.utc).isoformat(),
         "generated_at_sgt":datetime.now(ZoneInfo("Asia/Singapore")).isoformat(),
         "ticker":t,"summary":summary(frames),"frames":frames,"levels":lvls,
         "strategy":strategy_state(float(t["last"]),frames,lvls,previous,
             os.getenv("HAS_POSITION","false").lower()=="true",
             os.getenv("HAS_SHORT_POSITION","false").lower()=="true"),
-        "notes":["dual-direction v1: long and short candidates are independent; SHORT requires resistance rejection and never derives from long WAIT alone","low-risk entry v5: PROBE uses small size + mandatory tight stop; CONFIRMED expands only after structure confirmation; ADD requires confirmed continuation","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
+        "notes":["risk_v9: rule candidates are research signals, not proven profitable","PROBE requires confirmed support reclaim and net reward/risk; exits use actual reported fills","confirmed candles only","SuperTrend 10,3","BOLL 20,2","MACD histogram = 2*(DIFF-DEA)"]
     }
-    snap["change"]=detect_material_change(previous,snap)
+    try:
+        position=json.loads(os.getenv("POSITION_CONTEXT_JSON","") or "null")
+        if position is not None and not isinstance(position,dict): raise ValueError("position context must be an object")
+    except (ValueError,TypeError):
+        position={"invalid":True}
+    snap["execution_plan"]=trade_risk.exit_plan(position,float(t["last"]),frames,lvls)
+    snap["risk_assessment"]=trade_risk.assess_snapshot(snap,previous,position)
     snap["performance_tracking"]=update_performance_tracking(snap,raw_frames.get("15m"))
+    for side,key in (("long","low_risk_entry"),("short","low_risk_short")):
+        e=snap["strategy"][key]
+        e["stop_risk"]=snap["performance_tracking"]["probe_stop_risk"][side]
+        if e["entry_state"] in ("PROBE","SHORT_PROBE"):
+            for h,risk in e["stop_risk"].items():
+                code="STOP_RISK_UNCERTAIN" if risk["probability_estimate"] is None else "HISTORICAL_STOP_RATE_ELEVATED" if risk["probability_estimate"]>=.60 else None
+                if code:
+                    snap["risk_assessment"]["warnings"].append(f"{side.upper()}_{h}H_{code}")
+    snap["change"]=detect_material_change(previous,snap)
     (OUT/"latest.json").write_text(json.dumps(snap,ensure_ascii=False,indent=2),encoding="utf-8")
     rows="".join(f"<tr><td>{tf}</td><td>{m['close']:.4f}</td><td>{m['trend']}</td><td>{m['structure']['label']}</td><td>{m['rsi6']:.1f}</td><td>{m['supertrend_10_3']:.4f}</td></tr>" for tf,m in frames.items())
     html=f"""<!doctype html><meta charset="utf-8"><title>OPENAI-USDT-SWAP Monitor</title>
     <h1>OPENAI-USDT-SWAP</h1><p>Last: <b>{t['last']}</b> · Regime: <b>{snap['summary']['regime']}</b> · Strategy: <b>{snap['strategy']['state']}</b></p>
     <p>Material change: <b>{snap['change']['material']}</b> · Reasons: {', '.join(snap['change']['reasons']) or 'none'}</p>
     <p>Updated: {snap['generated_at_sgt']} (UTC+8)</p>
+    <h2>风险与持仓节奏</h2><pre>{json.dumps(snap["risk_assessment"],ensure_ascii=False,indent=2)}</pre>
+    <pre>{json.dumps(snap["execution_plan"],ensure_ascii=False,indent=2)}</pre>
+    <h2>试仓止损历史统计</h2><pre>{json.dumps(snap["performance_tracking"]["probe_stop_risk"],ensure_ascii=False,indent=2)}</pre>
     <h2>入场计划（候选信号，不自动下单）</h2><pre>{json.dumps(snap['strategy']['low_risk_entry'],ensure_ascii=False,indent=2)}</pre>
     <table border="1" cellpadding="6" cellspacing="0"><tr><th>周期</th><th>收盘</th><th>趋势</th><th>结构</th><th>RSI6</th><th>SuperTrend</th></tr>{rows}</table>
     <h2>支撑</h2><pre>{json.dumps(snap['levels']['supports'],ensure_ascii=False,indent=2)}</pre>
@@ -1046,3 +1111,4 @@ def main():
     (OUT/"index.html").write_text(html,encoding="utf-8")
 
 if __name__=="__main__": main()
+
