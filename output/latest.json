@@ -2,8 +2,8 @@
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
   "strategy_version": "risk_v9",
-  "generated_at_utc": "2026-09-29T09:31:57.418436+00:00",
-  "generated_at_sgt": "2026-09-29T17:31:57.418592+08:00",
+  "generated_at_utc": "2026-09-29T09:32:12.858632+00:00",
+  "generated_at_sgt": "2026-09-29T17:32:12.858817+08:00",
   "ticker": {
     "last": 160.27,
     "lastSz": 0.2,
@@ -11,12 +11,12 @@
     "askSz": 1.73,
     "bidPx": 160.27,
     "bidSz": 0.19,
-    "open24h": 157.85,
+    "open24h": 157.65,
     "high24h": 160.77,
     "low24h": 157.19,
-    "vol24h": 3021.68,
-    "volCcy24h": 3021.68,
-    "ts": 1790674316070
+    "vol24h": 2982.32,
+    "volCcy24h": 2982.32,
+    "ts": 1790674331461
   },
   "summary": {
     "regime": "mixed",
@@ -789,12 +789,12 @@
   },
   "performance_tracking": {
     "schema_version": 3,
-    "updated_at_utc": "2026-09-29T09:31:57.418436+00:00",
+    "updated_at_utc": "2026-09-29T09:32:12.858632+00:00",
     "instrument": "OPENAI-USDT-SWAP",
     "tracking_start_utc": "2026-09-28T03:08:00+00:00",
     "historical_rows_preserved": 13,
-    "decision_samples_raw": 33,
-    "decision_samples": 33,
+    "decision_samples_raw": 34,
+    "decision_samples": 34,
     "actionable_observations_raw": 6,
     "actionable_samples": 6,
     "independent_signal_lifecycles": 2,
@@ -951,7 +951,7 @@
     "material": false,
     "reasons": [],
     "level_tolerance": 0.64108,
-    "previous_generated_at": "2026-09-29T17:31:44.281807+08:00",
+    "previous_generated_at": "2026-09-29T17:31:57.418592+08:00",
     "previous_price": 160.27,
     "current_price": 160.27
   }
