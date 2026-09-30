@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-09-30T19:39:46.431701+00:00",
+  "updated_at_utc": "2026-09-30T23:03:30.051783+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 59,
-  "decision_samples": 59,
+  "decision_samples_raw": 60,
+  "decision_samples": 60,
   "actionable_observations_raw": 7,
   "actionable_samples": 7,
   "independent_signal_lifecycles": 3,
@@ -28,9 +28,9 @@
       "avg_return_pct": 0.020257
     },
     "12": {
-      "samples": 2,
-      "win_rate": 0.5,
-      "avg_return_pct": 0.287058
+      "samples": 3,
+      "win_rate": 0.3333,
+      "avg_return_pct": 0.078262
     },
     "24": {
       "samples": 2,
