@@ -1,14 +1,14 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-09-30T06:20:52.808484+00:00",
+  "updated_at_utc": "2026-09-30T07:22:54.821927+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 52,
-  "decision_samples": 52,
-  "actionable_observations_raw": 6,
-  "actionable_samples": 6,
-  "independent_signal_lifecycles": 2,
+  "decision_samples_raw": 53,
+  "decision_samples": 53,
+  "actionable_observations_raw": 7,
+  "actionable_samples": 7,
+  "independent_signal_lifecycles": 3,
   "duplicate_actionable_observations": 4,
   "historical_evaluations_appended": 0,
   "horizon_stats": {
@@ -152,7 +152,7 @@
     }
   },
   "probe_stop_risk_diagnostics": {
-    "selected_nonoverlapping_plans": 0,
+    "selected_nonoverlapping_plans": 1,
     "excluded_legacy_without_frozen_plan": 12,
     "missing_complete_paths": 0
   },
