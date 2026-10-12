@@ -56,5 +56,29 @@ class WorkflowHealthTests(unittest.TestCase):
         self.assertFalse(watchdog.should_dispatch(1, 1, force=True))
 
 
+class TestWatchdogParseTimestamp(unittest.TestCase):
+    def test_accepts_utc_z_suffix_at_day_boundary(self):
+        parsed = watchdog.parse_ts("2026-01-01T00:00:00Z")
+
+        self.assertEqual(parsed, datetime(2026, 1, 1, tzinfo=timezone.utc))
+        self.assertEqual(parsed.tzinfo, timezone.utc)
+
+    def test_preserves_explicit_offset_and_naive_values(self):
+        self.assertEqual(
+            watchdog.parse_ts("2026-01-01T00:00:00+05:30"),
+            datetime.fromisoformat("2026-01-01T00:00:00+05:30"),
+        )
+        self.assertEqual(
+            watchdog.parse_ts("2026-01-01T00:00:00"),
+            datetime(2026, 1, 1),
+        )
+
+    def test_rejects_malformed_and_non_string_values(self):
+        with self.assertRaises(ValueError):
+            watchdog.parse_ts("not-a-timestamp")
+        with self.assertRaises(AttributeError):
+            watchdog.parse_ts(None)
+
+
 if __name__ == "__main__":
     unittest.main()
