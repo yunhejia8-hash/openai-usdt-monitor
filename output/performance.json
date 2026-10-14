@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-10-14T05:20:13.589624+00:00",
+  "updated_at_utc": "2026-10-14T06:27:13.747174+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 180,
-  "decision_samples": 180,
+  "decision_samples_raw": 181,
+  "decision_samples": 181,
   "actionable_observations_raw": 7,
   "actionable_samples": 7,
   "independent_signal_lifecycles": 3,
@@ -15,27 +15,27 @@
     "0.5": {
       "samples": 3,
       "win_rate": 0.3333,
-      "avg_return_pct": -1.239677
+      "avg_return_pct": -1.249774
     },
     "1": {
       "samples": 3,
       "win_rate": 0.3333,
-      "avg_return_pct": -1.239677
+      "avg_return_pct": -1.249774
     },
     "4": {
       "samples": 3,
       "win_rate": 0.3333,
-      "avg_return_pct": -1.239677
+      "avg_return_pct": -1.249774
     },
     "12": {
       "samples": 3,
       "win_rate": 0.3333,
-      "avg_return_pct": -1.239677
+      "avg_return_pct": -1.249774
     },
     "24": {
       "samples": 3,
       "win_rate": 0.3333,
-      "avg_return_pct": -1.239677
+      "avg_return_pct": -1.249774
     }
   },
   "notes": [
