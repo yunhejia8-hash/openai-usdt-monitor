@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-10-23T20:31:31.258115+00:00",
+  "updated_at_utc": "2026-10-23T23:23:47.656120+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 284,
-  "decision_samples": 284,
+  "decision_samples_raw": 285,
+  "decision_samples": 285,
   "actionable_observations_raw": 8,
   "actionable_samples": 8,
   "independent_signal_lifecycles": 4,
@@ -15,27 +15,27 @@
     "0.5": {
       "samples": 4,
       "win_rate": 0.75,
-      "avg_return_pct": 2.395049
+      "avg_return_pct": 2.355667
     },
     "1": {
       "samples": 4,
       "win_rate": 0.75,
-      "avg_return_pct": 2.436036
+      "avg_return_pct": 2.396654
     },
     "4": {
-      "samples": 3,
-      "win_rate": 0.6667,
-      "avg_return_pct": 3.13875
+      "samples": 4,
+      "win_rate": 0.75,
+      "avg_return_pct": 2.326635
     },
     "12": {
       "samples": 3,
       "win_rate": 0.6667,
-      "avg_return_pct": 3.13875
+      "avg_return_pct": 3.086241
     },
     "24": {
       "samples": 3,
       "win_rate": 0.6667,
-      "avg_return_pct": 3.13875
+      "avg_return_pct": 3.086241
     }
   },
   "notes": [
@@ -104,23 +104,23 @@
       "4": {
         "status": "insufficient_samples",
         "probability_estimate": null,
-        "samples": 0,
+        "samples": 1,
         "minimum_samples": 30,
         "stop_first": 0,
         "target_first": 0,
-        "timeouts": 0,
+        "timeouts": 1,
         "ambiguous": 0,
         "observed_rate_bounds": [
-          null,
-          null
+          0.0,
+          0.0
         ],
         "wilson_95_interval": [
-          null,
-          null
+          0,
+          0.7934506856227626
         ],
         "mean_initial_leg_net_return_pct_bounds": [
-          null,
-          null
+          -0.22739463601532026,
+          -0.22739463601532026
         ],
         "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
         "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
