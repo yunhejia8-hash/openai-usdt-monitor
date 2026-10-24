@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-10-24T15:51:07.941181+00:00",
+  "updated_at_utc": "2026-10-24T17:38:27.324682+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 292,
-  "decision_samples": 292,
+  "decision_samples_raw": 293,
+  "decision_samples": 293,
   "actionable_observations_raw": 8,
   "actionable_samples": 8,
   "independent_signal_lifecycles": 4,
@@ -15,27 +15,27 @@
     "0.5": {
       "samples": 4,
       "win_rate": 0.75,
-      "avg_return_pct": 2.24661
+      "avg_return_pct": 2.264787
     },
     "1": {
       "samples": 4,
       "win_rate": 0.75,
-      "avg_return_pct": 2.287597
+      "avg_return_pct": 2.305773
     },
     "4": {
       "samples": 4,
       "win_rate": 0.75,
-      "avg_return_pct": 2.217578
+      "avg_return_pct": 2.235755
     },
     "12": {
       "samples": 4,
       "win_rate": 0.75,
-      "avg_return_pct": 2.641104
+      "avg_return_pct": 2.659281
     },
     "24": {
       "samples": 3,
       "win_rate": 0.6667,
-      "avg_return_pct": 2.940832
+      "avg_return_pct": 2.965067
     }
   },
   "notes": [
@@ -128,23 +128,23 @@
       "24": {
         "status": "insufficient_samples",
         "probability_estimate": null,
-        "samples": 0,
+        "samples": 1,
         "minimum_samples": 30,
         "stop_first": 0,
-        "target_first": 0,
+        "target_first": 1,
         "timeouts": 0,
         "ambiguous": 0,
         "observed_rate_bounds": [
-          null,
-          null
+          0.0,
+          0.0
         ],
         "wilson_95_interval": [
-          null,
-          null
+          0,
+          0.7934506856227626
         ],
         "mean_initial_leg_net_return_pct_bounds": [
-          null,
-          null
+          1.4642241379310394,
+          1.4642241379310394
         ],
         "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
         "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
