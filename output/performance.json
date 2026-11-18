@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "updated_at_utc": "2026-11-18T10:22:36.481266+00:00",
+  "updated_at_utc": "2026-11-18T18:57:22.584546+00:00",
   "instrument": "OPENAI-USDT-SWAP",
   "tracking_start_utc": "2026-09-28T03:08:00+00:00",
   "historical_rows_preserved": 13,
-  "decision_samples_raw": 466,
-  "decision_samples": 466,
+  "decision_samples_raw": 467,
+  "decision_samples": 467,
   "actionable_observations_raw": 10,
   "actionable_samples": 10,
   "independent_signal_lifecycles": 6,
@@ -15,27 +15,27 @@
     "0.5": {
       "samples": 6,
       "win_rate": 0.8333,
-      "avg_return_pct": 8.685707
+      "avg_return_pct": 9.112472
     },
     "1": {
       "samples": 6,
       "win_rate": 0.8333,
-      "avg_return_pct": 8.685707
+      "avg_return_pct": 9.112472
     },
     "4": {
       "samples": 6,
       "win_rate": 0.8333,
-      "avg_return_pct": 8.685707
+      "avg_return_pct": 9.112472
     },
     "12": {
       "samples": 6,
       "win_rate": 0.8333,
-      "avg_return_pct": 8.685707
+      "avg_return_pct": 9.112472
     },
     "24": {
       "samples": 6,
       "win_rate": 0.8333,
-      "avg_return_pct": 8.685707
+      "avg_return_pct": 9.112472
     }
   },
   "notes": [
@@ -104,23 +104,23 @@
       "4": {
         "status": "insufficient_samples",
         "probability_estimate": null,
-        "samples": 1,
+        "samples": 0,
         "minimum_samples": 30,
         "stop_first": 0,
         "target_first": 0,
-        "timeouts": 1,
+        "timeouts": 0,
         "ambiguous": 0,
         "observed_rate_bounds": [
-          0.0,
-          0.0
+          null,
+          null
         ],
         "wilson_95_interval": [
-          0,
-          0.7934506856227626
+          null,
+          null
         ],
         "mean_initial_leg_net_return_pct_bounds": [
-          -0.22739463601532026,
-          -0.22739463601532026
+          null,
+          null
         ],
         "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
         "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
@@ -128,23 +128,23 @@
       "24": {
         "status": "insufficient_samples",
         "probability_estimate": null,
-        "samples": 1,
+        "samples": 0,
         "minimum_samples": 30,
         "stop_first": 0,
-        "target_first": 1,
+        "target_first": 0,
         "timeouts": 0,
         "ambiguous": 0,
         "observed_rate_bounds": [
-          0.0,
-          0.0
+          null,
+          null
         ],
         "wilson_95_interval": [
-          0,
-          0.7934506856227626
+          null,
+          null
         ],
         "mean_initial_leg_net_return_pct_bounds": [
-          1.4642241379310394,
-          1.4642241379310394
+          null,
+          null
         ],
         "definition": "首次止盈前先触及初始止损；假设信号后下一根15m开盘仍在入场区，最长观察指定小时数",
         "limitations": "历史模拟频率，非真实成交或校准胜率；不含资金费/精确强平；24h去重不能消除市场相关性"
