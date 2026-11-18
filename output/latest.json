@@ -2,148 +2,148 @@
   "schema_version": 8,
   "instrument": "OPENAI-USDT-SWAP",
   "strategy_version": "risk_v10",
-  "generated_at_utc": "2026-11-17T20:50:39.454156+00:00",
-  "generated_at_sgt": "2026-11-18T04:50:39.454301+08:00",
+  "generated_at_utc": "2026-11-18T02:22:18.435362+00:00",
+  "generated_at_sgt": "2026-11-18T10:22:18.435543+08:00",
   "ticker": {
-    "last": 126.12,
-    "lastSz": 0.01,
-    "askPx": 126.23,
-    "askSz": 1.5,
-    "bidPx": 126.1,
-    "bidSz": 0.12,
-    "open24h": 127.66,
-    "high24h": 128.0,
+    "last": 125.34,
+    "lastSz": 0.07,
+    "askPx": 125.32,
+    "askSz": 0.09,
+    "bidPx": 125.26,
+    "bidSz": 0.04,
+    "open24h": 127.19,
+    "high24h": 127.21,
     "low24h": 120.91,
-    "vol24h": 5303.48,
-    "volCcy24h": 5303.48,
-    "ts": 1794948637073
+    "vol24h": 5340.04,
+    "volCcy24h": 5340.04,
+    "ts": 1794968537073
   },
   "summary": {
     "regime": "mixed",
     "timeframe_trends": {
       "15m": "neutral",
-      "1H": "bullish",
+      "1H": "neutral",
       "4H": "bearish"
     }
   },
   "frames": {
     "15m": {
-      "asof_ts": 1794947400000,
-      "close": 126.19,
-      "open": 126.19,
-      "low": 126.14,
-      "high": 126.25,
-      "ma5": 125.98,
-      "ma10": 126.029,
-      "ma20": 125.8575,
-      "boll_mid": 125.8575,
-      "boll_upper": 126.306582,
-      "boll_lower": 125.408418,
-      "rsi6": 64.499,
-      "rsi12": 57.536,
-      "rsi24": 53.728,
-      "macd_diff": 0.162815,
-      "macd_dea": 0.159888,
-      "macd_hist_okx": 0.005854,
-      "atr10": 0.444205,
-      "ma20_extension_atr": 0.749,
-      "supertrend_10_3": 124.862384,
-      "supertrend_direction": "up",
-      "volume_quote": 180.457,
-      "volume_20_avg": 2451.103,
-      "volume_ratio_vs_20": 0.074,
-      "recent_high": 128.0,
+      "asof_ts": 1794967200000,
+      "close": 125.6,
+      "open": 125.33,
+      "low": 125.33,
+      "high": 125.9,
+      "ma5": 125.632,
+      "ma10": 125.663,
+      "ma20": 125.577,
+      "boll_mid": 125.577,
+      "boll_upper": 126.178335,
+      "boll_lower": 124.975665,
+      "rsi6": 49.595,
+      "rsi12": 49.344,
+      "rsi24": 49.615,
+      "macd_diff": -0.027837,
+      "macd_dea": -0.022261,
+      "macd_hist_okx": -0.011153,
+      "atr10": 0.471931,
+      "ma20_extension_atr": 0.049,
+      "supertrend_10_3": 126.578704,
+      "supertrend_direction": "down",
+      "volume_quote": 7650.761,
+      "volume_20_avg": 2402.504,
+      "volume_ratio_vs_20": 3.184,
+      "recent_high": 127.21,
       "recent_low": 120.91,
       "structure": {
-        "label": "HH_HL",
+        "label": "expanding",
         "last_highs": [
-          126.1,
-          126.14,
-          126.28
+          126.18,
+          125.98,
+          126.21
         ],
         "last_lows": [
-          123.98,
-          124.83,
-          125.73
+          125.73,
+          124.86,
+          124.83
         ]
       },
       "trend": "neutral"
     },
     "1H": {
-      "asof_ts": 1794942000000,
-      "close": 125.9,
-      "open": 125.95,
-      "low": 125.8,
-      "high": 126.28,
-      "ma5": 125.808,
-      "ma10": 125.584,
-      "ma20": 125.572,
-      "boll_mid": 125.572,
-      "boll_upper": 128.112705,
-      "boll_lower": 123.031295,
-      "rsi6": 54.288,
-      "rsi12": 50.288,
-      "rsi24": 47.986,
-      "macd_diff": -0.286793,
-      "macd_dea": -0.459361,
-      "macd_hist_okx": 0.345136,
-      "atr10": 1.365621,
-      "ma20_extension_atr": 0.24,
-      "supertrend_10_3": 122.062083,
+      "asof_ts": 1794963600000,
+      "close": 125.32,
+      "open": 125.75,
+      "low": 125.32,
+      "high": 126.0,
+      "ma5": 125.546,
+      "ma10": 125.709,
+      "ma20": 125.2265,
+      "boll_mid": 125.2265,
+      "boll_upper": 127.242122,
+      "boll_lower": 123.210878,
+      "rsi6": 42.822,
+      "rsi12": 45.94,
+      "rsi24": 45.965,
+      "macd_diff": -0.206623,
+      "macd_dea": -0.2759,
+      "macd_hist_okx": 0.138554,
+      "atr10": 1.134326,
+      "ma20_extension_atr": 0.082,
+      "supertrend_10_3": 122.257021,
       "supertrend_direction": "up",
-      "volume_quote": 727.045,
-      "volume_20_avg": 32817.913,
-      "volume_ratio_vs_20": 0.022,
+      "volume_quote": 1419.965,
+      "volume_20_avg": 20912.073,
+      "volume_ratio_vs_20": 0.068,
       "recent_high": 129.04,
       "recent_low": 120.91,
       "structure": {
-        "label": "HH_HL",
+        "label": "contracting",
         "last_highs": [
-          125.93,
           126.42,
-          127.21
+          127.21,
+          126.37
         ],
         "last_lows": [
-          126.5,
           120.91,
-          122.51
+          122.51,
+          124.83
         ]
       },
-      "trend": "bullish"
+      "trend": "neutral"
     },
     "4H": {
-      "asof_ts": 1794931200000,
-      "close": 125.9,
-      "open": 125.58,
+      "asof_ts": 1794945600000,
+      "close": 125.39,
+      "open": 125.9,
       "low": 124.83,
-      "high": 126.33,
-      "ma5": 125.468,
-      "ma10": 126.459,
-      "ma20": 127.0365,
-      "boll_mid": 127.0365,
-      "boll_upper": 129.532475,
-      "boll_lower": 124.540525,
-      "rsi6": 45.845,
-      "rsi12": 44.076,
-      "rsi24": 44.042,
-      "macd_diff": -0.937014,
-      "macd_dea": -0.834792,
-      "macd_hist_okx": -0.204444,
-      "atr10": 2.320881,
-      "ma20_extension_atr": -0.49,
+      "high": 126.37,
+      "ma5": 125.112,
+      "ma10": 126.316,
+      "ma20": 126.931,
+      "boll_mid": 126.931,
+      "boll_upper": 129.516459,
+      "boll_lower": 124.345541,
+      "rsi6": 41.927,
+      "rsi12": 42.093,
+      "rsi24": 43.106,
+      "macd_diff": -0.950793,
+      "macd_dea": -0.857992,
+      "macd_hist_okx": -0.185602,
+      "atr10": 2.242793,
+      "ma20_extension_atr": -0.687,
       "supertrend_10_3": 129.893635,
       "supertrend_direction": "down",
-      "volume_quote": 30744.065,
-      "volume_20_avg": 63830.767,
-      "volume_ratio_vs_20": 0.482,
+      "volume_quote": 17458.145,
+      "volume_20_avg": 63658.022,
+      "volume_ratio_vs_20": 0.274,
       "recent_high": 133.22,
       "recent_low": 120.91,
       "structure": {
         "label": "LH_LL",
         "last_highs": [
-          130.89,
           129.04,
-          128.55
+          128.55,
+          127.21
         ],
         "last_lows": [
           124.99,
@@ -157,33 +157,29 @@
   "levels": {
     "supports": [
       {
-        "level": 125.6902,
+        "level": 125.1011,
         "sources": [
           "15m BOLL lower",
-          "1H MA20",
-          "1H MA10",
-          "15m MA20",
-          "15m MA10"
-        ],
-        "strength": 5
-      },
-      {
-        "level": 124.7015,
-        "sources": [
-          "4H BOLL lower",
-          "15m SuperTrend"
+          "1H MA20"
         ],
         "strength": 2
       },
       {
-        "level": 123.0313,
+        "level": 124.3455,
+        "sources": [
+          "4H BOLL lower"
+        ],
+        "strength": 1
+      },
+      {
+        "level": 123.2109,
         "sources": [
           "1H BOLL lower"
         ],
         "strength": 1
       },
       {
-        "level": 122.0621,
+        "level": 122.257,
         "sources": [
           "1H SuperTrend"
         ],
@@ -192,27 +188,31 @@
     ],
     "resistances": [
       {
-        "level": 126.3828,
+        "level": 125.6497,
+        "sources": [
+          "15m MA20",
+          "15m MA10",
+          "1H MA10"
+        ],
+        "strength": 3
+      },
+      {
+        "level": 126.3577,
         "sources": [
           "15m BOLL upper",
-          "4H MA10"
+          "4H MA10",
+          "15m SuperTrend"
         ],
-        "strength": 2
+        "strength": 3
       },
       {
-        "level": 127.0365,
+        "level": 127.1277,
         "sources": [
-          "4H MA20"
-        ],
-        "strength": 1
-      },
-      {
-        "level": 128.0564,
-        "sources": [
+          "4H MA20",
           "15m recent high",
           "1H BOLL upper"
         ],
-        "strength": 2
+        "strength": 3
       },
       {
         "level": 129.04,
@@ -227,78 +227,75 @@
     "state": "观望",
     "signal_conflict": false,
     "bias": "mixed",
-    "score": 2,
-    "support_primary": 125.6902,
-    "support_secondary": 124.7015,
-    "resistance_primary": 126.3828,
-    "resistance_secondary": 127.0365,
-    "invalidation_level": 124.7015,
+    "score": -1,
+    "support_primary": 125.1011,
+    "support_secondary": 124.3455,
+    "resistance_primary": 125.6497,
+    "resistance_secondary": 126.3577,
+    "invalidation_level": 124.3455,
     "limit_order_zone": [
-      125.601359,
-      125.956723
+      125.006714,
+      125.384259
     ],
     "confirmed_entry_zone": [
-      125.6902,
-      125.956723
+      125.1011,
+      125.384259
     ],
     "low_risk_entry": {
-      "buy_score": 58.3,
-      "entry_score": 55.0,
-      "location_score": 51.6,
-      "support_quality": 70.0,
-      "resistance_validity": 61.0,
+      "buy_score": 51.0,
+      "entry_score": 63.6,
+      "location_score": 74.7,
+      "support_quality": 46.0,
+      "resistance_validity": 54.0,
       "entry_state": "WAIT",
       "entry_mode": null,
       "entry_label": "WAIT",
-      "support_anchor": 125.6902,
+      "support_anchor": 125.1011,
       "support_anchor_sources": [
         "15m BOLL lower",
-        "1H MA20",
-        "1H MA10",
-        "15m MA20",
-        "15m MA10"
+        "1H MA20"
       ],
-      "support_distance_atr": 0.967571,
-      "support_distance_score": 51.6,
+      "support_distance_atr": 0.506218,
+      "support_distance_score": 74.7,
       "limit_order_zone": [
-        125.601359,
-        125.956723
+        125.006714,
+        125.384259
       ],
       "confirmed_entry_zone": [
-        125.6902,
-        125.956723
+        125.1011,
+        125.384259
       ],
-      "limit_order_allowed": true,
+      "limit_order_allowed": false,
       "limit_order_note": "区域仅供观察，必须entry_state=PROBE且通过风险检查才是小仓候选；同步维护probe_stop，不等同正式买入",
       "probe_entry_price": null,
-      "probe_stop": 124.612659,
-      "probe_stop_distance": 1.507341,
-      "probe_rr": 0.1743,
-      "probe_risk_pct_of_entry": 1.1952,
+      "probe_stop": 124.251114,
+      "probe_stop_distance": 1.088886,
+      "probe_rr": 0.2844,
+      "probe_risk_pct_of_entry": 0.8687,
       "probe_position_size_class": "micro",
-      "probe_size_multiplier": 0.221,
-      "microstructure_stop": 125.357046,
-      "structural_stop": 124.612659,
+      "probe_size_multiplier": 0.3251,
+      "microstructure_stop": 124.747152,
+      "structural_stop": 124.251114,
       "stop_basis": "STRUCTURE_BUFFER",
-      "invalidation_level": 124.7015,
-      "support_role_flip_invalidated": false,
-      "risk_reward_ratio": 0.1853,
-      "risk_reward_target": 126.3828,
+      "invalidation_level": 124.3455,
+      "support_role_flip_invalidated": true,
+      "risk_reward_ratio": 0.3114,
+      "risk_reward_target": 125.6497,
       "has_position": false,
       "breakout_level": null,
       "breakout_ts": null,
       "hard_no_chase": false,
-      "ma20_extension_atr": 0.591,
+      "ma20_extension_atr": -0.502,
       "chase_penalty": 0,
-      "probe_signal_count": 3,
+      "probe_signal_count": 2,
       "net_probe": {
         "valid": true,
-        "net_rr": 0.005857,
-        "stop_loss_pct": 1.393969,
-        "target_gain_pct": 0.008165,
-        "break_even_target_first_rate": 0.994177,
-        "gross_stop_distance_pct": 1.195164,
-        "cost_to_gross_risk": 0.166341,
+        "net_rr": 0.043864,
+        "stop_loss_pct": 1.067877,
+        "target_gain_pct": 0.046841,
+        "break_even_target_first_rate": 0.95798,
+        "gross_stop_distance_pct": 0.868746,
+        "cost_to_gross_risk": 0.229217,
         "fee_bps_per_side": 5,
         "slippage_bps_per_side": 5,
         "funding_included": false,
@@ -306,12 +303,12 @@
       },
       "net_confirmed": {
         "valid": true,
-        "net_rr": 0.006168,
-        "stop_loss_pct": 1.323598,
-        "target_gain_pct": 0.008165,
-        "break_even_target_first_rate": 0.993869,
-        "gross_stop_distance_pct": 1.124722,
-        "cost_to_gross_risk": 0.176822,
+        "net_rr": 0.047188,
+        "stop_loss_pct": 0.992648,
+        "target_gain_pct": 0.046841,
+        "break_even_target_first_rate": 0.954939,
+        "gross_stop_distance_pct": 0.793442,
+        "cost_to_gross_risk": 0.251066,
         "fee_bps_per_side": 5,
         "slippage_bps_per_side": 5,
         "funding_included": false,
@@ -320,12 +317,12 @@
       "cost_sensitivity": [
         {
           "valid": true,
-          "net_rr": 0.100644,
-          "stop_loss_pct": 1.274686,
-          "target_gain_pct": 0.12829,
-          "break_even_target_first_rate": 0.908559,
-          "gross_stop_distance_pct": 1.195164,
-          "cost_to_gross_risk": 0.066536,
+          "net_rr": 0.176075,
+          "stop_loss_pct": 0.948398,
+          "target_gain_pct": 0.166989,
+          "break_even_target_first_rate": 0.850286,
+          "gross_stop_distance_pct": 0.868746,
+          "cost_to_gross_risk": 0.091687,
           "fee_bps_per_side": 2,
           "slippage_bps_per_side": 2,
           "funding_included": false,
@@ -333,12 +330,12 @@
         },
         {
           "valid": true,
-          "net_rr": 0.005857,
-          "stop_loss_pct": 1.393969,
-          "target_gain_pct": 0.008165,
-          "break_even_target_first_rate": 0.994177,
-          "gross_stop_distance_pct": 1.195164,
-          "cost_to_gross_risk": 0.166341,
+          "net_rr": 0.043864,
+          "stop_loss_pct": 1.067877,
+          "target_gain_pct": 0.046841,
+          "break_even_target_first_rate": 0.95798,
+          "gross_stop_distance_pct": 0.868746,
+          "cost_to_gross_risk": 0.229217,
           "fee_bps_per_side": 5,
           "slippage_bps_per_side": 5,
           "funding_included": false,
@@ -346,12 +343,12 @@
         },
         {
           "valid": true,
-          "net_rr": -0.120572,
-          "stop_loss_pct": 1.592774,
-          "target_gain_pct": -0.192044,
+          "net_rr": -0.121078,
+          "stop_loss_pct": 1.267008,
+          "target_gain_pct": -0.153406,
           "break_even_target_first_rate": null,
-          "gross_stop_distance_pct": 1.195164,
-          "cost_to_gross_risk": 0.332682,
+          "gross_stop_distance_pct": 0.868746,
+          "cost_to_gross_risk": 0.458434,
           "fee_bps_per_side": 10,
           "slippage_bps_per_side": 10,
           "funding_included": false,
@@ -360,21 +357,21 @@
       ],
       "first_breakout_wait": false,
       "rules": {
-        "near_support": false,
+        "near_support": true,
         "valid_atr": true,
-        "pullback_touch": false,
+        "pullback_touch": true,
         "risk_reward_ok": false,
-        "near_support_probe": false,
+        "near_support_probe": true,
         "near_support_setup": true,
         "decisive_break": false,
         "reclaimed_support": true,
         "confirmed_candle_reclaim": false,
-        "15m_HL": true,
-        "15m_supertrend_up": true,
-        "15m_macd_positive": true,
+        "15m_HL": false,
+        "15m_supertrend_up": false,
+        "15m_macd_positive": false,
         "15m_rsi_probe_ok": true,
-        "volume_ratio_ge_probe": false,
-        "volume_ratio_ge_confirm": false,
+        "volume_ratio_ge_probe": true,
+        "volume_ratio_ge_confirm": true,
         "probe_candidate": false,
         "setup_candidate": false,
         "pullback_confirmed": false,
@@ -416,9 +413,9 @@
       "risk_reason_codes": [
         "NO_CONFIRMED_CANDLE_RECLAIM",
         "COUNTER_4H_TREND",
-        "WEAK_VOLUME",
         "INSUFFICIENT_NET_REWARD",
-        "STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE"
+        "STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE",
+        "PRIOR_SUPPORT_ROLE_FLIP"
       ],
       "stop_risk": {
         "4": {
@@ -472,52 +469,53 @@
       }
     },
     "low_risk_short": {
-      "sell_score": 36.8,
-      "entry_score": 54.6,
-      "location_score": 70.4,
-      "resistance_quality": 61.0,
-      "support_validity": 70.0,
+      "sell_score": 60.5,
+      "entry_score": 66.3,
+      "location_score": 67.2,
+      "resistance_quality": 54.0,
+      "support_validity": 46.0,
       "entry_state": "WAIT",
-      "resistance_anchor": 126.3828,
+      "resistance_anchor": 125.6497,
       "resistance_anchor_sources": [
-        "15m BOLL upper",
-        "4H MA10"
+        "15m MA20",
+        "15m MA10",
+        "1H MA10"
       ],
-      "resistance_distance_atr": 0.591619,
+      "resistance_distance_atr": 0.65624,
       "short_order_zone": [
-        126.116277,
-        126.471641
+        125.366541,
+        125.744086
       ],
       "confirmed_short_zone": [
-        126.116277,
-        126.3828
+        125.366541,
+        125.6497
       ],
-      "short_order_allowed": false,
+      "short_order_allowed": true,
       "short_entry_price": null,
-      "short_stop": 127.125341,
-      "short_stop_distance": 1.005341,
-      "short_rr": 0.4275,
-      "short_risk_pct_of_entry": 0.7971,
+      "short_stop": 126.452086,
+      "short_stop_distance": 1.112086,
+      "short_rr": 0.2148,
+      "short_risk_pct_of_entry": 0.8873,
       "short_position_size_class": "micro",
-      "short_size_multiplier": 0.3314,
-      "microstructure_stop": 126.715954,
-      "structural_stop": 127.125341,
+      "short_size_multiplier": 0.3183,
+      "microstructure_stop": 126.003648,
+      "structural_stop": 126.452086,
       "stop_basis": "STRUCTURE_BUFFER",
-      "invalidation_level": 127.0365,
-      "take_profit_target": 125.6902,
+      "invalidation_level": 126.3577,
+      "take_profit_target": 125.1011,
       "has_short_position": false,
       "hard_no_chase": false,
-      "ma20_extension_atr": 0.591,
+      "ma20_extension_atr": -0.502,
       "chase_penalty": 0,
-      "probe_signal_count": 0,
+      "probe_signal_count": 4,
       "net_probe": {
         "valid": true,
-        "net_rr": 0.14142,
-        "stop_loss_pct": 0.997928,
-        "target_gain_pct": 0.141127,
-        "break_even_target_first_rate": 0.876101,
-        "gross_stop_distance_pct": 0.797131,
-        "cost_to_gross_risk": 0.2519,
+        "net_rr": -0.008462,
+        "stop_loss_pct": 1.088143,
+        "target_gain_pct": -0.009208,
+        "break_even_target_first_rate": null,
+        "gross_stop_distance_pct": 0.887256,
+        "cost_to_gross_risk": 0.226414,
         "fee_bps_per_side": 5,
         "slippage_bps_per_side": 5,
         "funding_included": false,
@@ -525,12 +523,12 @@
       },
       "net_confirmed": {
         "valid": true,
-        "net_rr": 0.14142,
-        "stop_loss_pct": 0.997928,
-        "target_gain_pct": 0.141127,
-        "break_even_target_first_rate": 0.876101,
-        "gross_stop_distance_pct": 0.797131,
-        "cost_to_gross_risk": 0.2519,
+        "net_rr": -0.008462,
+        "stop_loss_pct": 1.088143,
+        "target_gain_pct": -0.009208,
+        "break_even_target_first_rate": null,
+        "gross_stop_distance_pct": 0.887256,
+        "cost_to_gross_risk": 0.226414,
         "fee_bps_per_side": 5,
         "slippage_bps_per_side": 5,
         "funding_included": false,
@@ -539,12 +537,12 @@
       "cost_sensitivity": [
         {
           "valid": true,
-          "net_rr": 0.297365,
-          "stop_loss_pct": 0.877449,
-          "target_gain_pct": 0.260923,
-          "break_even_target_first_rate": 0.770793,
-          "gross_stop_distance_pct": 0.797131,
-          "cost_to_gross_risk": 0.10076,
+          "net_rr": 0.114383,
+          "stop_loss_pct": 0.967611,
+          "target_gain_pct": 0.110678,
+          "break_even_target_first_rate": 0.897358,
+          "gross_stop_distance_pct": 0.887256,
+          "cost_to_gross_risk": 0.090566,
           "fee_bps_per_side": 2,
           "slippage_bps_per_side": 2,
           "funding_included": false,
@@ -552,12 +550,12 @@
         },
         {
           "valid": true,
-          "net_rr": 0.14142,
-          "stop_loss_pct": 0.997928,
-          "target_gain_pct": 0.141127,
-          "break_even_target_first_rate": 0.876101,
-          "gross_stop_distance_pct": 0.797131,
-          "cost_to_gross_risk": 0.2519,
+          "net_rr": -0.008462,
+          "stop_loss_pct": 1.088143,
+          "target_gain_pct": -0.009208,
+          "break_even_target_first_rate": null,
+          "gross_stop_distance_pct": 0.887256,
+          "cost_to_gross_risk": 0.226414,
           "fee_bps_per_side": 5,
           "slippage_bps_per_side": 5,
           "funding_included": false,
@@ -565,12 +563,12 @@
         },
         {
           "valid": true,
-          "net_rr": -0.048828,
-          "stop_loss_pct": 1.198725,
-          "target_gain_pct": -0.058532,
+          "net_rr": -0.162151,
+          "stop_loss_pct": 1.28903,
+          "target_gain_pct": -0.209017,
           "break_even_target_first_rate": null,
-          "gross_stop_distance_pct": 0.797131,
-          "cost_to_gross_risk": 0.5038,
+          "gross_stop_distance_pct": 0.887256,
+          "cost_to_gross_risk": 0.452828,
           "fee_bps_per_side": 10,
           "slippage_bps_per_side": 10,
           "funding_included": false,
@@ -578,17 +576,17 @@
         }
       ],
       "rules": {
-        "near_resistance": true,
+        "near_resistance": false,
         "near_resistance_probe": true,
         "near_resistance_setup": true,
         "decisive_breakout": false,
         "rejected_resistance": true,
         "15m_LH_LL": false,
-        "15m_supertrend_down": false,
-        "15m_macd_negative": false,
-        "15m_rsi_short_probe_ok": false,
-        "volume_ratio_ge_probe": false,
-        "volume_ratio_ge_confirm": false,
+        "15m_supertrend_down": true,
+        "15m_macd_negative": true,
+        "15m_rsi_short_probe_ok": true,
+        "volume_ratio_ge_probe": true,
+        "volume_ratio_ge_confirm": true,
         "rejection_touch": false,
         "short_probe_candidate": false,
         "short_setup_candidate": false,
@@ -617,7 +615,6 @@
         "short_add_rr_min": 2.0
       },
       "risk_reason_codes": [
-        "WEAK_VOLUME",
         "INSUFFICIENT_NET_REWARD",
         "STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE"
       ],
@@ -680,14 +677,14 @@
       "probe": {
         "enabled": false,
         "condition": "区域仅供观察，必须entry_state=PROBE且通过风险检查才是小仓候选；同步维护probe_stop，不等同正式买入",
-        "limit_order_allowed": true,
+        "limit_order_allowed": false,
         "position_size_class": "small"
       },
       "confirmed_buy": {
         "enabled": false,
         "condition": "回踩强支撑完成结构确认，或突破后回踩原阻力完成确认；禁止第一次突破追涨",
-        "trigger_above": 126.3828,
-        "confirmation_above": 127.0365
+        "trigger_above": 125.6497,
+        "confirmation_above": 126.3577
       },
       "add": {
         "enabled": false,
@@ -705,14 +702,14 @@
       "short_probe": {
         "enabled": false,
         "condition": "仅在强阻力附近反弹失败时小仓试空；必须同步设置short_stop，禁止下跌后追空",
-        "short_order_allowed": false,
+        "short_order_allowed": true,
         "position_size_class": "small"
       },
       "short_confirmed": {
         "enabled": false,
         "condition": "阻力附近形成LH/LL + SuperTrend向下 + MACD负 + 放量确认",
-        "trigger_below": 126.3828,
-        "take_profit_target": 125.6902
+        "trigger_below": 125.6497,
+        "take_profit_target": 125.1011
       },
       "short_add": {
         "enabled": false,
@@ -721,15 +718,15 @@
       },
       "reduce_risk": {
         "condition": "15m有效跌破第一支撑且1H继续弱势；跌破第二支撑视为结构进一步恶化",
-        "trigger_below": 125.6902,
-        "hard_invalidation_below": 124.7015
+        "trigger_below": 125.1011,
+        "hard_invalidation_below": 124.3455
       }
     },
     "reason_codes": [
       "4H_ST_down",
-      "1H_bullish",
+      "1H_neutral",
       "15m_neutral",
-      "15m_structure_HH_HL",
+      "15m_structure_expanding",
       "1H_MACD_POS",
       "NO_DIRECTION_CONFLICT",
       "ENTRY_WAIT",
@@ -761,15 +758,14 @@
       "LONG_COUNTER_4H_TREND",
       "LONG_INSUFFICIENT_NET_REWARD",
       "LONG_NO_CONFIRMED_CANDLE_RECLAIM",
+      "LONG_PRIOR_SUPPORT_ROLE_FLIP",
       "LONG_STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE",
-      "LONG_WEAK_VOLUME",
       "SHORT_INSUFFICIENT_NET_REWARD",
-      "SHORT_STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE",
-      "SHORT_WEAK_VOLUME"
+      "SHORT_STRUCTURAL_STOP_REQUIRES_REDUCED_SIZE"
     ],
     "rhythm": {
       "long": {
-        "signal_id": "risk_v10:long:1794947400000:125.6902:WAIT",
+        "signal_id": "risk_v10:long:1794967200000:125.1011:WAIT",
         "new_actionable_signal": false,
         "candidate_state": "WAIT",
         "repeat_signal_is_not_new_order": true,
@@ -777,7 +773,7 @@
         "add_requires_total_risk_budget_check": true
       },
       "short": {
-        "signal_id": "risk_v10:short:1794947400000:126.3828:WAIT",
+        "signal_id": "risk_v10:short:1794967200000:125.6497:WAIT",
         "new_actionable_signal": false,
         "candidate_state": "WAIT",
         "repeat_signal_is_not_new_order": true,
@@ -786,7 +782,7 @@
       }
     },
     "validation_status": "research_only_not_proven_profitable",
-    "price": 126.12,
+    "price": 125.34,
     "cost_assumption": "每边手续费5bps+滑点5bps；同时输出2/5/10bps敏感性，资金费未计入",
     "position_risk_note": "亏损百分比按名义持仓计算，不是账户权益亏损；账户风险需真实仓位及总权益",
     "account_risk_formula": "账户计划亏损%=名义持仓占权益%×stop_loss_pct/100；杠杆不再重复相乘；跳空及强平可能突破计划值",
@@ -795,12 +791,12 @@
   },
   "performance_tracking": {
     "schema_version": 3,
-    "updated_at_utc": "2026-11-17T20:50:39.454156+00:00",
+    "updated_at_utc": "2026-11-18T02:22:18.435362+00:00",
     "instrument": "OPENAI-USDT-SWAP",
     "tracking_start_utc": "2026-09-28T03:08:00+00:00",
     "historical_rows_preserved": 13,
-    "decision_samples_raw": 464,
-    "decision_samples": 464,
+    "decision_samples_raw": 465,
+    "decision_samples": 465,
     "actionable_observations_raw": 10,
     "actionable_samples": 10,
     "independent_signal_lifecycles": 6,
@@ -810,27 +806,27 @@
       "0.5": {
         "samples": 6,
         "win_rate": 0.8333,
-        "avg_return_pct": 8.476865
+        "avg_return_pct": 8.544966
       },
       "1": {
         "samples": 6,
         "win_rate": 0.8333,
-        "avg_return_pct": 8.476865
+        "avg_return_pct": 8.544966
       },
       "4": {
         "samples": 6,
         "win_rate": 0.8333,
-        "avg_return_pct": 8.476865
+        "avg_return_pct": 8.544966
       },
       "12": {
         "samples": 6,
         "win_rate": 0.8333,
-        "avg_return_pct": 8.476865
+        "avg_return_pct": 8.544966
       },
       "24": {
         "samples": 6,
         "win_rate": 0.8333,
-        "avg_return_pct": 8.476865
+        "avg_return_pct": 8.544966
       }
     },
     "notes": [
@@ -956,13 +952,22 @@
   "change": {
     "material": true,
     "reasons": [
-      "entry_score_crossed_58:62.6->55.0",
-      "limit_order_zone_changed:[125.540524, 125.931629]->[125.601359, 125.956723]",
-      "confirmed_entry_zone_changed:[125.6383, 125.931629]->[125.6902, 125.956723]"
+      "buy_score_crossed_55:58.3->51.0",
+      "entry_score_crossed_58:55.0->63.6",
+      "limit_order_zone_changed:[125.601359, 125.956723]->[125.006714, 125.384259]",
+      "confirmed_entry_zone_changed:[125.6902, 125.956723]->[125.1011, 125.384259]",
+      "limit_order_allowed:True->False",
+      "short_short_order_allowed:False->True",
+      "risk_warnings_changed:LONG_PRIOR_SUPPORT_ROLE_FLIP,LONG_WEAK_VOLUME,SHORT_WEAK_VOLUME",
+      "1H_trend:bullish->neutral",
+      "support_shift:125.6902->125.1011",
+      "resistance_shift:126.3828->125.6497",
+      "price_crossed_support_down:125.6902",
+      "score_change:2->-1"
     ],
-    "level_tolerance": 0.50448,
-    "previous_generated_at": "2026-11-18T04:03:29.634710+08:00",
-    "previous_price": 125.91,
-    "current_price": 126.12
+    "level_tolerance": 0.50136,
+    "previous_generated_at": "2026-11-18T04:50:39.454301+08:00",
+    "previous_price": 126.12,
+    "current_price": 125.34
   }
 }
